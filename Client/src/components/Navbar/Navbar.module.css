@@ -1,0 +1,37 @@
+/* Navbar */
+.navbar {
+  position: fixed;  /* Fija la navbar en la parte superior */
+  top: 0;           /* Asegura que esté en la parte superior de la pantalla */
+  left: 0;          /* Asegura que esté alineada a la izquierda */
+  width: 100%;      /* Asegura que ocupe todo el ancho de la pantalla */
+  z-index: 1000;    /* Asegura que la navbar esté encima de otros elementos */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para hacerla más visible */
+  background-color: rgba(0, 0, 0, 1);
+  z-index: 1030;
+}
+
+.navbar-brand {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: block;
+  aspect-ratio: 3 / 1; /* Ajusta según las proporciones de tu imagen */
+  width: 200px; /* Cambia a lo que necesites */
+  height: auto; /* Se ajustará automáticamente */
+  text-indent: -9999px; /* Oculta el texto sin romper accesibilidad */
+  font-weight: bold;
+}
+
+
+.navbar-nav .nav-link {
+  color: #333;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #007bff;  /* Color al pasar el mouse sobre los enlaces */
+}
+
+/* Para que el contenido debajo de la navbar no quede cubierto */
+body {
+  padding-top: 80px; /* Ajusta según el alto de tu navbar */
+}

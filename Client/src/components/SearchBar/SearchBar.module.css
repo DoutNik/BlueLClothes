@@ -1,0 +1,136 @@
+.searchBar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-55%);
+  z-index: 10;
+  top: 10px;
+}
+
+.back {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: 8;
+}
+
+.searchBar form {
+  display: flex;
+}
+
+.searchBar input {
+  width: 320px;
+  height: 40px;
+  padding-left: 10px;
+  outline: none;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  margin-left: 20px;
+  transition: 300ms;
+  color: black;
+}
+
+.searchBar input:focus {
+  border-radius: 5px;
+  border-bottom: 2px solid cornflowerblue;
+}
+
+.searchBar svg {
+  position: absolute;
+  top: 12px;
+  right: 10px;
+  color: gray;
+}
+
+.searchBar .all {
+  position: absolute;
+  right: -60px;
+  top: 12px;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin-left: 0;
+  color: white;
+  text-wrap: nowrap;
+}
+
+.list {
+  position: fixed;
+  width: 330px;
+  height: fit-content;
+  max-height: 40vh;
+  top: 60px;
+  left: 50%;
+  margin-left: -7.5px;
+  transform: translate(-50%);
+  background-color: rgba(245, 245, 245, 0.9);
+  z-index: 10;
+  overflow: scroll;
+  border-radius: 5px;
+}
+
+.list ul {
+  list-style: none;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.list li {
+  width: 200px;
+  margin: 10px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-wrap: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.element {
+  display: flex;
+  color: black;
+  margin: 5px;
+}
+
+.store {
+  display: flex;
+  color: black;
+  margin: 5px;
+}
+
+.element img {
+  position: absolute;
+  right: 5px;
+  width: 70px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.store img {
+  position: absolute;
+  align-self: center;
+  width: 25px;
+  height: 25px;
+  right: 25px;
+}
+
+.element .logo {
+  width: 25px;
+  height: 25px;
+  right: 25px;
+  align-self: center;
+}
+
+@media (max-width: 900px) {
+  .searchBar input {
+    width: 220px;
+    font-size: 12px;
+  }
+
+  .list {
+    margin-left: -1px;
+    width: 300px;
+  }
+}
