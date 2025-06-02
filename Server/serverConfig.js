@@ -1,41 +1,18 @@
 const express = require("express");
 const { createServer } = require("node:http");
-const { Server } = require("socket.io");
 
 const { User, Notifications, Tienda, Compra } = require("./src/DB_config");
 
 const router = require("./src/routes/routes");
-const matchsSockets = require("./src/controllers/payController");
 
-const admin = require("firebase-admin");
-/* const serviceAccount = {
-  type: "service_account",
-  project_id: process.env.PROJECT_ID,
-  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: process.env.PRIVATE_KEY,
-  client_email: process.env.CLIENT_EMAIL,
-  client_id: process.env.CLIENT_ID,
-  auth_uri: "https://accounts.google.com/o/oauth2/auth",
-  token_uri: "https://accounts.google.com/o/oauth2/token",
-  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: process.env.CERT_URL
-}; */
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: "*",
-  },
-});
+
 
 const morgan = require("morgan");
 const cors = require("cors");
-const mercadopago = require("mercadopago");
 
 app.use(morgan("dev"));
 app.use(express.json());
