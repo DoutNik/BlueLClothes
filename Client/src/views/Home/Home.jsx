@@ -24,9 +24,6 @@ const Home = () => {
             ¡Bienvenido a BlueGlass!
           </span>
         </h1>
-        <p className={styles.subtitle}>
-          Selecciona una categoría para explorar:
-        </p>
         {/* Botones de Selección */}
         <div className={styles.buttonContainer}>
           <button

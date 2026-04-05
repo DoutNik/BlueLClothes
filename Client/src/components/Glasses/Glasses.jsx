@@ -1,41 +1,38 @@
-// Glasses.jsx
 import React from 'react';
+import './Glasses.css';
 
 const Glasses = () => {
+    const glasses = [
+        { title: "Elegante", desc: "Minimalismo moderno." },
+        { title: "Deportiva", desc: "Rendimiento y estilo." },
+        { title: "Vintage", desc: "Clásico atemporal." },
+        { title: "Urbana", desc: "Diseño street." },
+    ];
+
     return (
-        <div className="container text-center mt-5">
-            <h2 className="mb-4">Colección de Gafas</h2>
+        <div className="container mt-5">
+            <h2 className="text-center mb-5">Colección de Gafas</h2>
+
             <div className="row">
-                <div className="col-12 col-md-4 mb-3">
-                    <div className="card">
-                        <img src="https://via.placeholder.com/200" className="card-img-top" alt="Gafa 1" />
-                        <div className="card-body">
-                            <h5 className="card-title">Gafa Elegante</h5>
-                            <p className="card-text">Gafas modernas para todos los estilos.</p>
-                            <button className="btn btn-primary">Ver Más</button>
+                {glasses.map((g, i) => (
+                    <div key={i} className="col-6 col-lg-3 mb-4">
+                        <div className="card-pro">
+                            <img src="https://via.placeholder.com/500" alt={g.title} />
+
+                            <div className="card-dark-overlay" />
+
+                            <div className="card-content">
+                                <h5>{g.title}</h5>
+                                <p>{g.desc}</p>
+                                <button>Ver más</button>
+                            </div>
+
+                            <div className="card-tag">
+                                {g.title}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="col-12 col-md-4 mb-3">
-                    <div className="card">
-                        <img src="https://via.placeholder.com/200" className="card-img-top" alt="Gafa 2" />
-                        <div className="card-body">
-                            <h5 className="card-title">Gafa Deportiva</h5>
-                            <p className="card-text">Perfectas para tus actividades al aire libre.</p>
-                            <button className="btn btn-primary">Ver Más</button>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-12 col-md-4 mb-3">
-                    <div className="card">
-                        <img src="https://via.placeholder.com/200" className="card-img-top" alt="Gafa 3" />
-                        <div className="card-body">
-                            <h5 className="card-title">Gafa Vintage</h5>
-                            <p className="card-text">Diseño retro para los amantes de lo clásico.</p>
-                            <button className="btn btn-primary">Ver Más</button>
-                        </div>
-                    </div>
-                </div>
+                ))}
             </div>
         </div>
     );
