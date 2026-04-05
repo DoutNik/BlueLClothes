@@ -25,7 +25,6 @@
   .containerScrolling {
   position: relative;
   margin: 20px auto;
-  background-color: rgba(0, 0, 0, 0.08);
   padding: 20px;
   border-radius: 20px;
   text-align: center;
@@ -37,8 +36,9 @@
   .title {
     font-size: 2rem;
     margin-bottom: 20px;
-    color: #fff;
+    color: #ffffff;
     text-align: center;
+    
   }
 
   .titleHidden {
@@ -46,7 +46,7 @@
   }
   
   .blurBackground {
-    color: #8c95a8; /* Color del texto */
+    color: #3f95db; /* Color del texto */
     font-weight: bold; /* Texto en negrita */
   }
   
