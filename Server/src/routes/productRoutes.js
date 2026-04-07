@@ -23,7 +23,7 @@ router.get("/getAllProducts", async (req, res) => {
     }
   });
 
-  router.Product("/createProduct", async (req, res) => {
+  router.put("/createProduct", async (req, res) => {
     const productData = req.body;
     try {
       console.log(ProductData);

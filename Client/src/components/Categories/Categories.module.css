@@ -1,0 +1,115 @@
+.container {
+  text-align: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.containerCentered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+  transition: all 0.5s ease; /* Transiciones suaves */
+  z-index: 1000;
+}
+
+.containerScrolling {
+  position: relative;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+  transition: all 0.5s ease;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.titleHidden {
+  display: none;
+}
+
+.blurBackground {
+  color: #3f95db; /* Color del texto */
+  font-weight: bold; /* Texto en negrita */
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #ddd;
+}
+
+.buttonContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.button {
+  width: 140px;
+  height: 80px;
+  font-size: 1rem;
+  color: #fff;
+  opacity: 0.9;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition:
+    transform 0.4s,
+    opacity 0.4s;
+}
+
+.button p {
+  color: black;
+  margin-top: 45%;
+}
+
+.button:hover {
+  transform: scale(1.1); /* Efecto de zoom */
+  opacity: 1; /* Efecto de opacidad */
+}
+
+.ropa {
+  background-image: url("../../assets/ropaOption2.jpg");
+}
+
+.gafas {
+  background-image: url("../../assets/gafasOption.jpg");
+}
+
+.content {
+  margin-top: 20px;
+}
+
+.text {
+  font-size: 1rem;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro con transparencia */
+  padding: 15px;
+  border-radius: 8px;
+  line-height: 1.6;
+  display: inline-block;
+  max-width: 90%;
+  margin: 0 auto;
+}
