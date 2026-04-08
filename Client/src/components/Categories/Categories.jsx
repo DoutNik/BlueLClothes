@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styles from "./Categories.module.css";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
 const Categories = () => {
   const location = useLocation();
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [isCentered, setIsCentered] = useState(true); // Estado para el centrado
+  const [selectedCategory, setSelectedCategory] = useState("active");
+  const [isCentered, setIsCentered] = useState(false); // Estado para el centrado
 
   const handleSelect = (category) => {
     setSelectedCategory(category);
@@ -14,9 +14,9 @@ const Categories = () => {
   };
 
   useEffect(() => {
-    if (location.pathname !== "/") {
-      setIsCentered(false);
-      setSelectedCategory("active");
+    if (location.pathname === "/") {
+      setIsCentered(true);
+      setSelectedCategory("");
     }
   }, [location]);
 

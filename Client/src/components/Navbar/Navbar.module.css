@@ -31,6 +31,10 @@
   color: #007bff;  /* Color al pasar el mouse sobre los enlaces */
 }
 
+.navbar-logo {
+  height: 40px;
+  object-fit: contain;
+}
 /* Para que el contenido debajo de la navbar no quede cubierto */
 body {
   padding-top: 80px; /* Ajusta según el alto de tu navbar */
