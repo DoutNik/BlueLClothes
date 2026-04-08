@@ -1,5 +1,6 @@
 import React from 'react';
 import './Glasses.css';
+import Categories from '../../components/Categories/Categories';
 
 const Glasses = () => {
     const glasses = [
@@ -11,6 +12,7 @@ const Glasses = () => {
 
     return (
         <div className="container mt-5">
+            <Categories />
             <h2 className="text-center mb-5">Colección de Gafas</h2>
 
             <div className="row">

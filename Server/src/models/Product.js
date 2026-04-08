@@ -1,3 +1,4 @@
+// models/Product.js
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
@@ -13,11 +14,11 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      marca: {
+      brand: {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      categoria: {
+      category: {
         type: DataTypes.STRING,
       },
       description: {
@@ -28,22 +29,22 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      desc: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
       stock: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      image: {
+      imageUrl: {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+      },
     },
     {
-      paranoid: true,
-      deletedAt: "Deshabilitado",
+      paranoid: true, // soft delete
+      timestamps: true,
     }
   );
 };
