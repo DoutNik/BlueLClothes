@@ -1,0 +1,190 @@
+/* ===== CONTENEDOR GENERAL ===== */
+.auth-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at 50% 20%, #111, #000 80%);
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+
+/* Luces de fondo animadas */
+.auth-container::before,
+.auth-container::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #3f95db33, transparent 70%);
+  animation: floatLights 8s infinite ease-in-out alternate;
+}
+
+.auth-container::after {
+  top: 60%;
+  left: 70%;
+  animation-delay: 3s;
+}
+
+@keyframes floatLights {
+  from {
+    transform: translateY(0px) scale(1);
+  }
+  to {
+    transform: translateY(-40px) scale(1.1);
+  }
+}
+
+/* ===== CARD ===== */
+.auth-card {
+  position: relative;
+  background: rgba(10, 10, 10, 0.75);
+  padding: 40px;
+  border-radius: 20px;
+  width: 340px;
+  backdrop-filter: blur(20px);
+  text-align: center;
+  z-index: 2;
+  animation: fadeIn 0.6s ease;
+  transition: 0.3s;
+}
+
+/* estados dinámicos */
+.auth-card.success {
+  box-shadow: 0 0 20px #00ff9f, 0 0 40px #00ff9f55;
+}
+
+.auth-card.error {
+  animation: shake 0.3s;
+  box-shadow: 0 0 20px #ff4d4d;
+}
+
+/* Borde neon */
+.neon-border {
+  border: 1px solid rgba(63, 149, 219, 0.4);
+  box-shadow:
+    0 0 10px rgba(63, 149, 219, 0.6),
+    0 0 30px rgba(63, 149, 219, 0.3),
+    inset 0 0 10px rgba(63, 149, 219, 0.2);
+}
+
+/* ===== TEXTOS ===== */
+.auth-title {
+  font-size: 1.9rem;
+  margin-bottom: 10px;
+  color: #3f95db;
+  text-shadow: 0 0 10px #3f95db;
+}
+
+.auth-subtitle {
+  font-size: 0.9rem;
+  margin-bottom: 25px;
+  color: #bbb;
+}
+
+/* ===== INPUTS ===== */
+.auth-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  outline: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  transition: 0.3s;
+}
+
+.auth-card input:focus {
+  border: 1px solid #3f95db;
+  box-shadow: 0 0 10px #3f95db;
+}
+
+.auth-card input::placeholder {
+  color: #aaa;
+}
+
+/* input error */
+.input-error {
+  border: 1px solid #ff4d4d !important;
+  box-shadow: 0 0 8px #ff4d4d !important;
+}
+
+/* ===== MENSAJE ERROR ===== */
+.error-text {
+  color: #ff4d4d;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+  text-align: left;
+  padding-left: 5px;
+}
+
+/* ===== BOTÓN ===== */
+.neon-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(45deg, #3f95db, #1c6fb8);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* hover */
+.neon-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px #3f95db;
+}
+
+/* loading */
+.neon-button.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* disabled */
+.neon-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== LOADER ===== */
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* shake error */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}

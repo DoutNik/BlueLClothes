@@ -23,14 +23,7 @@ app.use(function (req, res, next) {
 
   const allowedOrigins = [
     "http://localhost:5173",
-    "https://www.tiendaslocales.com.ar",
-    "https://tiendaslocales-production-9ef2.up.railway.app/",
-    "http://69.162.124.224",
-    "http://63.143.42.240",
-    "http://216.245.221.80",
-    "http://208.115.199.16",
-    "http://216.144.248.16",
-    "http://2607:FF68:107::"
+    "http://localhost:3001",
   ]; 
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {

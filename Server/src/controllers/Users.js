@@ -1,16 +1,24 @@
 // controllers/userController.js
-const { User } = require("../db");
+const { User } = require("../DB_config");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // REGISTER
 const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, firstName, lastName } = req.body;
+
+    // VALIDACIÓN
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({
+        error: "Missing required fields",
+      });
+    }
 
     const existing = await User.findOne({ where: { email } });
-    if (existing)
+    if (existing) {
       return res.status(400).json({ error: "User already exists" });
+    }
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -19,9 +27,13 @@ const register = async (req, res) => {
       password: hashed,
     });
 
-    res.status(201).json(user);
+    res.status(201).json({
+      id: user.id,
+      email: user.email,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error); // 👈 IMPORTANTE
+    res.status(500).json({ error: error });
   }
 };
 
@@ -31,22 +43,20 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ where: { email } });
-    if (!user)
-      return res.status(404).json({ error: "User not found" });
+    if (!user) return res.status(404).json({ error: "El email ingresado no se encuentra registrado" });
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid)
-      return res.status(401).json({ error: "Invalid credentials" });
+    if (!valid) return res.status(401).json({ error: "Credenciales inválidas" });
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "2h" }
+      { expiresIn: "2h" },
     );
 
     res.json({ token, user });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error });
   }
 };
 

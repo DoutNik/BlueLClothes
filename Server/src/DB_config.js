@@ -44,9 +44,7 @@ const {
   Product,
   User,
 } = sequelize.models;
-// models/index.js o db.js
-User.hasMany(Order);
-Order.belongsTo(User);
+
 
 module.exports = {
   ...sequelize.models,
