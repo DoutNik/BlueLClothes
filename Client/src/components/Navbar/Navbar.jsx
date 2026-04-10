@@ -5,8 +5,13 @@ import logo1 from "../../assets/logo2.png";
 const Navbar = () => {
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+const storedUser = localStorage.getItem("user");
 
+const user =
+  storedUser && storedUser !== "undefined"
+    ? JSON.parse(storedUser)
+    : null;
+    
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -32,17 +37,20 @@ const Navbar = () => {
 
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto align-items-center gap-2">
-            
             {/* LINKS BASE */}
             <li className="nav-item">
-              <Link className="nav-link" to="/">Inicio</Link>
+              <Link className="nav-link" to="/">
+                Inicio
+              </Link>
             </li>
 
             {/* NO LOGUEADO */}
             {!user && (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/login">Login</Link>
+                  <Link className="nav-link" to="/login">
+                    Login
+                  </Link>
                 </li>
 
                 <li className="nav-item">
@@ -65,7 +73,10 @@ const Navbar = () => {
                 {/* ADMIN */}
                 {user.role === "admin" && (
                   <li className="nav-item">
-                    <Link className="btn btn-warning btn-sm" to="/admin/products">
+                    <Link
+                      className="btn btn-warning btn-sm"
+                      to="/admin/products"
+                    >
                       Admin
                     </Link>
                   </li>

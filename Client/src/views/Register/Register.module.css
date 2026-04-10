@@ -1,0 +1,215 @@
+/* ===== CONTENEDOR ===== */
+.authContainer {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at 50% 20%, #111, #000 80%);
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+
+/* Luces fondo */
+.authContainer::before,
+.authContainer::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #3f95db33, transparent 70%);
+  animation: floatLights 8s infinite ease-in-out alternate;
+}
+
+.authContainer::after {
+  top: 60%;
+  left: 70%;
+  animation-delay: 3s;
+}
+
+@keyframes floatLights {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-40px);
+  }
+}
+
+/* ===== CARD ===== */
+.authCard {
+  background: rgba(10, 10, 10, 0.8);
+  padding: 35px;
+  border-radius: 20px;
+  width: 360px;
+  backdrop-filter: blur(20px);
+  text-align: center;
+  z-index: 2;
+  animation: fadeIn 0.5s ease;
+}
+
+.neonBorder {
+  border: 1px solid rgba(63, 149, 219, 0.4);
+  box-shadow:
+    0 0 10px rgba(63, 149, 219, 0.6),
+    0 0 30px rgba(63, 149, 219, 0.2);
+}
+
+/* ===== TITULOS ===== */
+.authTitle {
+  font-size: 1.8rem;
+  color: #3f95db;
+  text-shadow: 0 0 10px #3f95db;
+}
+
+.authSubtitle {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+
+/* ===== PASOS ===== */
+.stepIndicator {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.step {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #333;
+}
+
+.stepActive {
+  background: #3f95db;
+  box-shadow: 0 0 8px #3f95db;
+}
+
+/* ===== FORM ===== */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== INPUTS ===== */
+.form input {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  transition: 0.3s;
+}
+
+.form input:focus {
+  border: 1px solid #3f95db;
+  box-shadow: 0 0 10px #3f95db;
+}
+
+.form input::placeholder {
+  color: #aaa;
+}
+
+/* ===== BOTONES ===== */
+.buttonGroup {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.neonButton {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(45deg, #3f95db, #1c6fb8);
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.neonButton:hover {
+  box-shadow: 0 0 12px #3f95db;
+  transform: translateY(-2px);
+}
+
+.secondaryButton {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #555;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.secondaryButton:hover {
+  border-color: #3f95db;
+  color: white;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: #222;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #3f95db, #00ffe0);
+  transition: width 0.3s ease;
+}
+
+/* ERRORES */
+.errorText {
+  font-size: 0.75rem;
+  color: #ff4d4d;
+  text-align: left;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+/* SUCCESS */
+.success {
+  box-shadow: 0 0 20px #00ff9f, 0 0 40px #00ff9f55;
+}
+
+/* ERROR */
+.error {
+  animation: shake 0.3s;
+  box-shadow: 0 0 20px #ff4d4d;
+}
+
+/* ===== ANIMACIÓN ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
