@@ -5,13 +5,11 @@ import logo1 from "../../assets/logo2.png";
 const Navbar = () => {
   const navigate = useNavigate();
 
-const storedUser = localStorage.getItem("user");
+  const storedUser = localStorage.getItem("user");
 
-const user =
-  storedUser && storedUser !== "undefined"
-    ? JSON.parse(storedUser)
-    : null;
-    
+  const user =
+    storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -75,9 +73,9 @@ const user =
                   <li className="nav-item">
                     <Link
                       className="btn btn-warning btn-sm"
-                      to="/admin/products"
+                      to="/admin/dashboard"
                     >
-                      Admin
+                      ⚡ Admin Panel
                     </Link>
                   </li>
                 )}

@@ -41,10 +41,14 @@ module.exports = (sequelize) => {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
       },
+      status: {
+        type: DataTypes.ENUM("draft", "ready", "published"),
+        defaultValue: "draft",
+      },
     },
     {
       paranoid: true, // soft delete
       timestamps: true,
-    }
+    },
   );
 };

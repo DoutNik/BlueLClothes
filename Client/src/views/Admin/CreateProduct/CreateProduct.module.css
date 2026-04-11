@@ -1,0 +1,76 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: white;
+}
+
+.card {
+  width: 100%;
+  max-width: 900px;
+  padding: 30px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #1a001f, #000000, #1a001f);
+  border: 1px solid rgba(255, 0, 200, 0.4);
+  box-shadow: 0 0 30px rgba(255, 0, 200, 0.2);
+}
+
+.title {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #ff00c8;
+  letter-spacing: 3px;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 0, 200, 0.3);
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+  outline: none;
+  transition: 0.3s;
+}
+
+.input:focus {
+  border-color: #ff00c8;
+  box-shadow: 0 0 10px #ff00c8;
+}
+
+.full {
+  grid-column: span 2;
+}
+
+.textarea {
+  height: 100px;
+  resize: none;
+}
+
+.button {
+  background: #ff00c8;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.button:hover {
+  background: #ff4ddb;
+  box-shadow: 0 0 15px #ff00c8;
+}
+
+.message {
+  margin-top: 15px;
+  text-align: center;
+  color: #00ffae;
+}

@@ -1,7 +1,16 @@
 // middleware/isAdmin.js
 module.exports = (req, res, next) => {
-  if (req.user.role !== "admin")
-    return res.status(403).json({ error: "Forbidden" });
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "No autenticado" });
+    }
 
-  next();
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "No autorizado" });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ error: "Error en autorización" });
+  }
 };

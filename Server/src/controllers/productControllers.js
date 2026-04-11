@@ -1,13 +1,69 @@
 // controllers/productController.js
 const { Product } = require("../DB_config");
 
+const isProductComplete = (product) => {
+  return (
+    product.title &&
+    product.description &&
+    product.price &&
+    product.stock &&
+    product.imageUrl &&
+    product.category
+  );
+};
+
 // CREATE
 const createProduct = async (req, res) => {
   try {
-    const product = await Product.create(req.body);
-    res.status(201).json(product);
+    const data = req.body;
+
+    const product = await Product.create({
+      ...data,
+      status: "draft", // siempre arranca como borrador
+    });
+
+    if (isProductComplete(product)) {
+      product.status = "ready";
+      await product.save();
+    }
+
+    res.status(201).json({
+      message: isProductComplete(product)
+        ? "Producto creado y listo para publicar"
+        : "Producto guardado como borrador",
+      product,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+const publishProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findByPk(id);
+
+    if (!product) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    if (!isProductComplete(product)) {
+      return res.status(400).json({
+        error: "El producto no está completo. No se puede publicar.",
+      });
+    }
+
+    // publicar
+    product.status = "published";
+    await product.save();
+
+    res.status(200).json({
+      message: "Producto publicado correctamente",
+      product,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -15,9 +71,37 @@ const createProduct = async (req, res) => {
 const getAllProducts = async (req, res) => {
   try {
     const products = await Product.findAll({
-      where: { isActive: true },
+      where: {
+        status: "published",
+        isActive: true,
+      },
+      order: [["createdAt", "DESC"]],
     });
-    res.json(products);
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAdminProducts = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    const where = {};
+
+    // filtro opcional por status (ej: ?status=draft)
+    if (status) {
+      where.status = status;
+    }
+
+    const products = await Product.findAll({
+      where,
+      paranoid: false, // 👈 incluye eliminados (soft delete)
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -106,4 +190,5 @@ module.exports = {
   deleteProduct,
   suspendProduct,
   activateProduct,
+  publishProduct,
 };

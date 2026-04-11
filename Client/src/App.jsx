@@ -2,12 +2,16 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./views/Home/Home";
 import SearchBar from "./components/SearchBar/SearchBar";
+import CreateProduct from "./views/Admin/CreateProduct/CreateProduct";
+import AdminDashboard from "./views/Admin/AdminDashboard";
+//import AdminProducts from "./views/Admin/Products/AdminProducts";
 import Glasses from "./views/Glasses/Glasses";
 import Clothes from "./views/Clothes/Clothes";
 import Login from "./views/Login/Login";
 import Register from "./views/Register/Register";
 import Navbar from "./components/Navbar/Navbar";
 import backgroundImage from "./assets/backgroundImage.jpg";
+import AdminRoute from "./components/AdminRoute/AdminRoute";
 
 import "./App.css";
 
@@ -34,6 +38,32 @@ const App = () => {
           <Route path="/clothes" element={<Clothes />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
+{/*           <Route
+            path="/admin/products"
+            element={
+              <AdminRoute>
+                <AdminProducts />
+              </AdminRoute>
+            }
+          /> */}
+
+          <Route
+            path="/admin/create-product"
+            element={
+              <AdminRoute>
+                <CreateProduct />
+              </AdminRoute>
+            }
+          />
         </Routes>
         <footer>Footer content</footer>
       </div>
