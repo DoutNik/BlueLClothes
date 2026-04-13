@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "./CreateProduct.module.css";
 import backgroundImage from "../../../assets/adminBackground.jpg";
@@ -14,6 +14,9 @@ const CreateProduct = () => {
     imageUrl: "",
   });
 
+  const [files, setFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
@@ -23,18 +26,91 @@ const CreateProduct = () => {
     });
   };
 
+  // 📸 manejar múltiples imágenes (sin duplicados)
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+
+    const filtered = selectedFiles.filter(
+      (file) => !files.some((f) => f.name === file.name)
+    );
+
+    setFiles((prev) => [...prev, ...filtered]);
+
+    const newPreviews = filtered.map((file) =>
+      URL.createObjectURL(file)
+    );
+
+    setPreviews((prev) => [...prev, ...newPreviews]);
+  };
+
+  // 🧹 limpiar memory leaks
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
+
+  // ❌ eliminar imagen individual
+  const handleRemoveImage = (index) => {
+    const newFiles = files.filter((_, i) => i !== index);
+    const newPreviews = previews.filter((_, i) => i !== index);
+
+    setFiles(newFiles);
+    setPreviews(newPreviews);
+
+    // reset input si no quedan imágenes
+    if (newFiles.length === 0) {
+      const input = document.getElementById("fileInput");
+      if (input) input.value = "";
+    }
+  };
+
+  // ☁️ subir múltiples imágenes
+  const uploadImages = async () => {
+    const uploadedUrls = [];
+
+    for (let file of files) {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("category", form.category);
+
+      const res = await axios.post(
+        "http://localhost:3001/upload",
+        formData
+      );
+
+      uploadedUrls.push(res.data.imageUrl);
+    }
+
+    return uploadedUrls;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
     try {
       const token = localStorage.getItem("token");
 
-      await axios.post("http://localhost:3001/products", form, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      let imageUrls = [];
 
-      setMessage("✅ Producto guardado como borrador");
+      if (files.length > 0) {
+        imageUrls = await uploadImages();
+      }
+
+      await axios.post(
+        "http://localhost:3001/products",
+        { ...form, imageUrl: imageUrls },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setMessage("✅ Producto creado correctamente");
+
       setForm({
         title: "",
         brand: "",
@@ -44,9 +120,14 @@ const CreateProduct = () => {
         stock: "",
         imageUrl: "",
       });
+
+      setFiles([]);
+      setPreviews([]);
     } catch (error) {
       console.error(error);
       setMessage("❌ Error al crear producto");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,6 +151,7 @@ const CreateProduct = () => {
             placeholder="Nombre del producto"
             className={styles.input}
           />
+
           <input
             name="brand"
             value={form.brand}
@@ -77,6 +159,7 @@ const CreateProduct = () => {
             placeholder="Marca"
             className={styles.input}
           />
+
           <select
             name="category"
             value={form.category}
@@ -89,6 +172,7 @@ const CreateProduct = () => {
             <option value="abanicos">Abanicos</option>
             <option value="accesorios">Accesorios</option>
           </select>
+
           <input
             name="price"
             value={form.price}
@@ -97,6 +181,7 @@ const CreateProduct = () => {
             type="number"
             className={styles.input}
           />
+
           <input
             name="stock"
             value={form.stock}
@@ -106,13 +191,46 @@ const CreateProduct = () => {
             className={styles.input}
           />
 
-          <input
-            name="imageUrl"
-            value={form.imageUrl}
-            onChange={handleChange}
-            placeholder="URL de la imagen"
-            className={`${styles.input} ${styles.full}`}
-          />
+          {/* 📸 INPUT FILE */}
+          <div className={`${styles.full} ${styles.fileWrapper}`}>
+            <label className={styles.fileLabel}>
+              {files.length > 0
+                ? "Agregar más imágenes"
+                : "Subir imágenes"}
+              <input
+                id="fileInput"
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className={styles.fileInput}
+              />
+            </label>
+
+            {files.length > 0 && (
+              <span className={styles.fileName}>
+                {files.length} imagen(es) seleccionada(s)
+              </span>
+            )}
+          </div>
+
+          {/* 🔥 PREVIEW GRID */}
+          {previews.length > 0 && (
+            <div className={styles.previewGrid}>
+              {previews.map((img, index) => (
+                <div key={index} className={styles.previewItem}>
+                  <img src={img} alt="preview" />
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className={styles.removeButton}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <textarea
             name="description"
@@ -122,8 +240,12 @@ const CreateProduct = () => {
             className={`${styles.input} ${styles.full} ${styles.textarea}`}
           />
 
-          <button type="submit" className={`${styles.button} ${styles.full}`}>
-            GUARDAR BORRADOR
+          <button
+            type="submit"
+            className={`${styles.button} ${styles.full}`}
+            disabled={loading}
+          >
+            {loading ? "SUBIENDO..." : "GUARDAR BORRADOR"}
           </button>
         </form>
 
