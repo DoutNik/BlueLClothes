@@ -34,7 +34,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       imageUrl: {
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: false,
       },
       isActive: {
