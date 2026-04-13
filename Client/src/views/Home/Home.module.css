@@ -3,6 +3,13 @@
     text-align: center;
     padding: 20px;
     font-family: Arial, sans-serif;
+    background-size: cover; /* Ajusta toda la imagen dentro del contenedor */
+    background-position: top center; /* Centra la imagen horizontalmente y la alinea al tope */
+    background-repeat: no-repeat; /* Evita repeticiones */
+    min-height: 200vh;
+    height: 100%;
+    width: 100%; /* Ocupa todo el ancho */
+    overflow-x: hidden;
   }
   
   .containerCentered {

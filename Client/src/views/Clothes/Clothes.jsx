@@ -20,7 +20,7 @@ const Clothes = () => {
                 {glasses.map((g, i) => (
                     <div key={i} className="col-6 col-lg-3 mb-4">
                         <div className="card-pro">
-                            <img src="https://via.placeholder.com/500" alt={g.title} />
+                            <img src="" alt={g.title} />
 
                             <div className="card-dark-overlay" />
 

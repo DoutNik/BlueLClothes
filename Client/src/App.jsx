@@ -10,7 +10,6 @@ import Clothes from "./views/Clothes/Clothes";
 import Login from "./views/Login/Login";
 import Register from "./views/Register/Register";
 import Navbar from "./components/Navbar/Navbar";
-import backgroundImage from "./assets/backgroundImage.jpg";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
 
 import "./App.css";
@@ -23,12 +22,7 @@ const App = () => {
         v7_startTransition: true,
       }}
     >
-      <div
-        className="app-container"
-        style={{
-          backgroundImage: `url(${backgroundImage})`,
-        }}
-      >
+      <div className="app-container">
         <header>
           <Navbar />
         </header>
@@ -47,7 +41,7 @@ const App = () => {
             }
           />
 
-{/*           <Route
+          {/*           <Route
             path="/admin/products"
             element={
               <AdminRoute>

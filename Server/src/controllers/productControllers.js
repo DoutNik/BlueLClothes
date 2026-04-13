@@ -191,4 +191,5 @@ module.exports = {
   suspendProduct,
   activateProduct,
   publishProduct,
+  getAdminProducts
 };
