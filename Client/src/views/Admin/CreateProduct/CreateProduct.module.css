@@ -1,21 +1,41 @@
 .container {
+  min-height: 100vh;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  color: white;
+
+  position: relative;
 }
 
+/* overlay oscuro para que se lea bien */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* card principal */
 .card {
+  position: relative;
+  z-index: 2;
+
   width: 100%;
   max-width: 900px;
   padding: 30px;
+
   border-radius: 20px;
-  background: linear-gradient(135deg, #1a001f, #000000, #1a001f);
+  background: rgba(10, 0, 15, 0.9);
   border: 1px solid rgba(255, 0, 200, 0.4);
-  box-shadow: 0 0 30px rgba(255, 0, 200, 0.2);
+
+  box-shadow: 0 0 30px rgba(255, 0, 200, 0.3);
 }
 
+/* título */
 .title {
   text-align: center;
   font-size: 28px;
@@ -24,12 +44,14 @@
   letter-spacing: 3px;
 }
 
+/* form grid */
 .form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
 }
 
+/* inputs */
 .input {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 0, 200, 0.3);
@@ -45,15 +67,54 @@
   box-shadow: 0 0 10px #ff00c8;
 }
 
+.select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 0, 200, 0.3);
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+  outline: none;
+  transition: 0.3s;
+
+  appearance: none;
+  cursor: pointer;
+
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23ff00c8' height='20' viewBox='0 0 24 24' width='20'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 35px;
+}
+
+.select:focus {
+  border-color: #ff00c8;
+  box-shadow: 0 0 10px #ff00c8;
+}
+
+/* 🔥 options estilo rave */
+.select option {
+  background: #000;            /* fondo negro */
+  color: #ff00c8;              /* violeta neón */
+  font-weight: 500;
+}
+
+/* algunos navegadores soportan esto */
+.select option:checked {
+  background: #1a001f;
+  color: #ff00c8;
+}
+
+/* ocupa 2 columnas */
 .full {
   grid-column: span 2;
 }
 
+/* textarea */
 .textarea {
   height: 100px;
   resize: none;
 }
 
+/* botón */
 .button {
   background: #ff00c8;
   border: none;
@@ -69,6 +130,7 @@
   box-shadow: 0 0 15px #ff00c8;
 }
 
+/* mensaje */
 .message {
   margin-top: 15px;
   text-align: center;

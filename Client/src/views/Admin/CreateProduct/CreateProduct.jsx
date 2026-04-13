@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import styles from "./CreateProduct.module.css";
+import backgroundImage from "../../../assets/adminBackground.jpg";
 
 const CreateProduct = () => {
   const [form, setForm] = useState({
@@ -50,37 +51,49 @@ const CreateProduct = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+      }}
+    >
+      <div className={styles.overlay} />
+
       <div className={styles.card}>
-        <h2 className={styles.title}>CREATE PRODUCT</h2>
+        <h2 className={styles.title}>CREAR PRODUCTO</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <input
             name="title"
             value={form.title}
             onChange={handleChange}
-            placeholder="Title"
+            placeholder="Nombre del producto"
             className={styles.input}
           />
           <input
             name="brand"
             value={form.brand}
             onChange={handleChange}
-            placeholder="Brand"
+            placeholder="Marca"
             className={styles.input}
           />
-          <input
+          <select
             name="category"
             value={form.category}
             onChange={handleChange}
-            placeholder="Category"
-            className={styles.input}
-          />
+            className={styles.select}
+          >
+            <option value="">Seleccionar categoría</option>
+            <option value="gafas">Gafas / Lentes</option>
+            <option value="ropa">Ropa</option>
+            <option value="abanicos">Abanicos</option>
+            <option value="accesorios">Accesorios</option>
+          </select>
           <input
             name="price"
             value={form.price}
             onChange={handleChange}
-            placeholder="Price"
+            placeholder="Precio"
             type="number"
             className={styles.input}
           />
@@ -97,7 +110,7 @@ const CreateProduct = () => {
             name="imageUrl"
             value={form.imageUrl}
             onChange={handleChange}
-            placeholder="Image URL"
+            placeholder="URL de la imagen"
             className={`${styles.input} ${styles.full}`}
           />
 
@@ -105,7 +118,7 @@ const CreateProduct = () => {
             name="description"
             value={form.description}
             onChange={handleChange}
-            placeholder="Description"
+            placeholder="Descripción"
             className={`${styles.input} ${styles.full} ${styles.textarea}`}
           />
 
@@ -119,4 +132,5 @@ const CreateProduct = () => {
     </div>
   );
 };
+
 export default CreateProduct;
