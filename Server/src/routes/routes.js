@@ -3,11 +3,11 @@ const { Router } = require("express");
 
 const productRoutes = require("./productRoutes");
 const userRoutes = require("./Users");
-const upload = require("../middleware/upload");
+const upload = require("../middleware/uploadCloudinary");
 
 //const orderRoutes = require("./orderRoutes"); 
 
-const { uploadImage } = require("../controllers/uploadController");
+const { uploadImage } = require("../controllers/cloudinary");
 
 
 const router = Router();

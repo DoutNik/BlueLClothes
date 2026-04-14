@@ -2,8 +2,8 @@
 const { Router } = require("express");
 const router = Router();
 
-const auth = require("../../Middleware/Authorization");
-const isAdmin = require("../../Middleware/isAdmin");
+const auth = require("../Middleware/Authorization");
+const isAdmin = require("../Middleware/isAdmin");
 
 const {
   register,
