@@ -91,11 +91,20 @@
 }
 
 .ropa {
-  background-image: url("../../assets/ropaOption2.jpg");
+  background-image: url("../../assets/Icono-ropa.png");
 }
 
 .gafas {
-  background-image: url("../../assets/gafasOption.jpg");
+  background-image: url("../../assets/Icono-gafas.png");
+}
+.accsessories {
+  background-image: url("../../assets/Icono-accesorios.png");
+  background-size: contain; /* o cover según el efecto */
+}
+
+.handfan {
+  background-image: url("../../assets/Icono-abanico.png");
+  background-size: contain; /* o cover según el efecto */
 }
 
 .content {
@@ -112,4 +121,40 @@
   display: inline-block;
   max-width: 90%;
   margin: 0 auto;
+}
+
+.disabled {
+  position: relative;
+  cursor: not-allowed;
+  overflow: hidden; /* 👈 importante para la diagonal */
+}
+
+/* 🔥 badge arriba */
+.overlay {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.5); /* deja ver el fondo */
+  backdrop-filter: blur(2px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+
+  pointer-events: none; /* no bloquea clicks */
+}
+
+.overlay span {
+  transform: rotate(-25deg);
+
+  background: rgba(255, 0, 200, 0.8);
+  color: white;
+
+  padding: 6px 40px;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+
+  box-shadow: 0 0 10px rgba(255, 0, 200, 0.8);
 }
