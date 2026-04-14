@@ -35,12 +35,42 @@ const Categories = () => {
         </h1>
         {/* Botones de Selección */}
         <div className={styles.buttonContainer}>
+          <Link className="nav-link" to="/accessories">
+            <button
+              className={`${styles.button} ${styles.accsessories} ${styles.disabled}`}
+              disabled
+            >
+              <p>Accesorios</p>
+
+              <div className={styles.overlay}>
+                <span>PRÓXIMAMENTE</span>
+              </div>
+            </button>
+          </Link>
+
+          <Link className="nav-link" to="/handfan">
+            <button
+              className={`${styles.button} ${styles.handfan} ${styles.disabled}`}
+              disabled
+            >
+              <p>Abanicos</p>
+
+              <div className={styles.overlay}>
+                <span>PRÓXIMAMENTE</span>
+              </div>
+            </button>
+          </Link>
+
           <Link className="nav-link" to="/clothes">
             <button
-              className={`${styles.button} ${styles.ropa}`}
-              onClick={() => handleSelect("clothes")}
+              className={`${styles.button} ${styles.ropa} ${styles.disabled}`}
+              disabled
             >
               <p>Ropa</p>
+
+              <div className={styles.overlay}>
+                <span>PRÓXIMAMENTE</span>
+              </div>
             </button>
           </Link>
 
