@@ -2,13 +2,25 @@ import styles from "./Glasses.module.css";
 import Categories from "../../components/Categories/Categories";
 import backgroundImage from "../../assets/backgroundImage.jpg";
 
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getProducts } from "../../REDUX/actions";
+import { filterByCategory } from "../../utils/filterProducts";
+
 const Glasses = () => {
-  const glasses = [
-    { title: "Elegante", desc: "Minimalismo moderno." },
-    { title: "Deportiva", desc: "Rendimiento y estilo." },
-    { title: "Vintage", desc: "Clásico atemporal." },
-    { title: "Urbana", desc: "Diseño street." },
-  ];
+  const dispatch = useDispatch();
+
+  // ✅ selector correcto (profesional)
+  const { allProducts, loading, error } = useSelector(
+    (state) => state.products
+  );
+
+  useEffect(() => {
+    dispatch(getProducts());
+  }, [dispatch]);
+
+  // 🛡️ defensivo (por si algo falla)
+  const glasses = filterByCategory(allProducts || [], "gafas");
 
   return (
     <div
@@ -18,31 +30,48 @@ const Glasses = () => {
       }}
     >
       <Categories />
-      <h2 className="text-center mb-5">Colección de Gafas</h2>
 
-      <div className="row">
-        {glasses.map((g, i) => (
-          <div key={i} className="col-6 col-lg-3 mb-4">
-            <div className={styles.cardPro}>
-              <img
-                src="https://via.placeholder.com/500"
-                alt={g.title}
-                className={styles.image}
-              />
+      <h2 className={styles.title}>Colección de Gafas</h2>
 
-              <div className={styles.overlay} />
+      {loading && <p>Cargando...</p>}
 
-              <div className={styles.content}>
-                <h5>{g.title}</h5>
-                <p>{g.desc}</p>
-                <button className={styles.button}>Ver más</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {!loading && !error && (
+        <div className={styles.grid}>
+          {glasses.length > 0 ? (
+            glasses.map((g, i) => (
+              <div key={i} className={styles.cardWrapper}>
+                <div className={styles.cardPro}>
+                  <img
+                    src={
+                      g.imageUrl?.[0] ||
+                      g.image ||
+                      "https://via.placeholder.com/500"
+                    }
+                    alt={g.title}
+                    className={styles.image}
+                  />
+
+                  <div className={styles.overlay} />
+
+                  <div className={styles.content}>
+                    <h5>{g.title}</h5>
+                    <p>{g.description || g.desc}</p>
+                    <button className={styles.button}>
+                      Ver más
+                    </button>
+                  </div>
+
+                  <div className={styles.tag}>{g.title}</div>
+                </div>
               </div>
-
-              <div className={styles.tag}>{g.title}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+            ))
+          ) : (
+            <p>No hay productos disponibles</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

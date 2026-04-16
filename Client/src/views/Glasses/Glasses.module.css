@@ -1,15 +1,37 @@
 .container {
-    background-size: cover; /* Ajusta toda la imagen dentro del contenedor */
-    background-position: top center; /* Centra la imagen horizontalmente y la alinea al tope */
-    background-repeat: no-repeat; /* Evita repeticiones */
-    min-height: 200vh;
-    height: 100%;
-    width: 100%; /* Ocupa todo el ancho */
-    overflow-x: hidden;
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
 }
 
+/* Título */
+.title {
+  text-align: center;
+  margin-bottom: 40px;
+  color: rgb(27, 7, 174);
+}
+
+/* GRID (reemplaza Bootstrap) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Wrapper para achicar cards */
+.cardWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+/* CARD */
 .cardPro {
   position: relative;
+  width: 100%;
+  max-width: 240px; /* 👈 controla tamaño */
   aspect-ratio: 1 / 1.15;
   overflow: hidden;
   border-radius: 16px;
@@ -17,7 +39,7 @@
 
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  background: rgba(40, 1, 1, 0.745);
+  background: rgba(40, 1, 1, 0.75);
   transition: 0.3s;
 }
 
@@ -46,7 +68,7 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-  padding: 20px;
+  padding: 16px;
   color: white;
 
   opacity: 0;
@@ -57,14 +79,14 @@
 /* Tag */
 .tag {
   position: absolute;
-  top: 15px;
+  top: 12px;
   right: -35px;
   background: rgba(255, 255, 255, 0.9);
   color: black;
   padding: 5px 45px;
   transform: rotate(45deg);
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 /* Botón */
@@ -72,9 +94,10 @@
   background: transparent;
   border: 1px solid white;
   color: white;
-  padding: 6px 14px;
+  padding: 5px 12px;
   margin-top: 8px;
   transition: all 0.3s ease;
+  font-size: 0.8rem;
 }
 
 .button:hover {
@@ -82,7 +105,7 @@
   color: black;
 }
 
-/* Hover efectos */
+/* Hover */
 .cardPro:hover .image {
   transform: scale(1.08);
 }
@@ -94,4 +117,50 @@
 .cardPro:hover .content {
   opacity: 1;
   transform: translateY(0);
+}
+
+---
+
+/* 📱 TABLET */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+---
+
+/* 📱 MOBILE */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .cardPro {
+    max-width: 180px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  .content h5 {
+    font-size: 0.85rem;
+  }
+
+  .content p {
+    font-size: 0.7rem;
+  }
+
+  .button {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  .tag {
+    font-size: 0.6rem;
+    right: -30px;
+  }
 }
