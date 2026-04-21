@@ -7,6 +7,7 @@ import AdminDashboard from "./views/Admin/AdminDashboard";
 //import AdminProducts from "./views/Admin/Products/AdminProducts";
 import Glasses from "./views/Glasses/Glasses";
 import Clothes from "./views/Clothes/Clothes";
+import ProductDetail from "./views/Detail/Detail";
 import Login from "./views/Login/Login";
 import Register from "./views/Register/Register";
 import Navbar from "./components/Navbar/Navbar";
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/glasses" element={<Glasses />} />
           <Route path="/clothes" element={<Clothes />} />
+          <Route path="/product-detail/:id" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route

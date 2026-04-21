@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../api/api";
 import {
   GET_PRODUCTS_REQUEST,
   GET_PRODUCTS_SUCCESS,
@@ -10,7 +10,7 @@ export const getProducts = () => {
     dispatch({ type: GET_PRODUCTS_REQUEST });
 
     try {
-      const res = await axios.get("http://localhost:3001/products");
+      const res = await api.get("/products");
 
       // 🔍 aseguramos que siempre sea array
       const products = Array.isArray(res.data)

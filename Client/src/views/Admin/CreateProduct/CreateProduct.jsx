@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../api/api";
 import styles from "./CreateProduct.module.css";
 import backgroundImage from "../../../assets/adminBackground.jpg";
 
@@ -74,8 +74,8 @@ const CreateProduct = () => {
       formData.append("image", file);
       formData.append("category", form.category);
 
-      const res = await axios.post(
-        "http://localhost:3001/upload",
+      const res = await api.post(
+        "/upload",
         formData
       );
 
@@ -99,8 +99,8 @@ const CreateProduct = () => {
         imageUrls = await uploadImages();
       }
 
-      await axios.post(
-        "http://localhost:3001/products",
+      await api.post(
+        "/products",
         { ...form, imageUrl: imageUrls },
         {
           headers: {
