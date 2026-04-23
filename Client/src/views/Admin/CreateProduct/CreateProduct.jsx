@@ -18,15 +18,22 @@ const CreateProduct = () => {
   const [previews, setPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
     setForm({
       ...form,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
-  // 📸 manejar múltiples imágenes (sin duplicados)
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
 
@@ -41,16 +48,21 @@ const CreateProduct = () => {
     );
 
     setPreviews((prev) => [...prev, ...newPreviews]);
+
+    setErrors((prev) => ({
+      ...prev,
+      images: "",
+    }));
   };
 
-  // 🧹 limpiar memory leaks
   useEffect(() => {
     return () => {
-      previews.forEach((url) => URL.revokeObjectURL(url));
+      if (Array.isArray(previews)) {
+        previews.forEach((url) => URL.revokeObjectURL(url));
+      }
     };
   }, [previews]);
 
-  // ❌ eliminar imagen individual
   const handleRemoveImage = (index) => {
     const newFiles = files.filter((_, i) => i !== index);
     const newPreviews = previews.filter((_, i) => i !== index);
@@ -58,14 +70,24 @@ const CreateProduct = () => {
     setFiles(newFiles);
     setPreviews(newPreviews);
 
-    // reset input si no quedan imágenes
     if (newFiles.length === 0) {
       const input = document.getElementById("fileInput");
       if (input) input.value = "";
     }
   };
 
-  // ☁️ subir múltiples imágenes
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!form.title.trim()) newErrors.title = "El título es obligatorio";
+    if (!form.price || Number(form.price) <= 0)
+      newErrors.price = "Precio inválido";
+    if (!form.category) newErrors.category = "Selecciona una categoría";
+    if (files.length === 0) newErrors.images = "Sube al menos una imagen";
+
+    return newErrors;
+  };
+
   const uploadImages = async () => {
     const uploadedUrls = [];
 
@@ -74,11 +96,7 @@ const CreateProduct = () => {
       formData.append("image", file);
       formData.append("category", form.category);
 
-      const res = await api.post(
-        "/upload",
-        formData
-      );
-
+      const res = await api.post("/upload", formData);
       uploadedUrls.push(res.data.imageUrl);
     }
 
@@ -87,17 +105,22 @@ const CreateProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setMessage("❌ Corrige los errores");
+      return;
+    }
+
     setLoading(true);
     setMessage("");
 
     try {
       const token = localStorage.getItem("token");
 
-      let imageUrls = [];
-
-      if (files.length > 0) {
-        imageUrls = await uploadImages();
-      }
+      const imageUrls = await uploadImages();
 
       await api.post(
         "/products",
@@ -123,6 +146,7 @@ const CreateProduct = () => {
 
       setFiles([]);
       setPreviews([]);
+      setErrors({});
     } catch (error) {
       console.error(error);
       setMessage("❌ Error al crear producto");
@@ -134,9 +158,7 @@ const CreateProduct = () => {
   return (
     <div
       className={styles.container}
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-      }}
+      style={{ backgroundImage: `url(${backgroundImage})` }}
     >
       <div className={styles.overlay} />
 
@@ -144,82 +166,96 @@ const CreateProduct = () => {
         <h2 className={styles.title}>CREAR PRODUCTO</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <input
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            placeholder="Nombre del producto"
-            className={styles.input}
-          />
-
-          <input
-            name="brand"
-            value={form.brand}
-            onChange={handleChange}
-            placeholder="Marca"
-            className={styles.input}
-          />
-
-          <select
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            className={styles.select}
-          >
-            <option value="">Seleccionar categoría</option>
-            <option value="gafas">Gafas / Lentes</option>
-            <option value="ropa">Ropa</option>
-            <option value="abanicos">Abanicos</option>
-            <option value="accesorios">Accesorios</option>
-          </select>
-
-          <input
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            placeholder="Precio"
-            type="number"
-            className={styles.input}
-          />
-
-          <input
-            name="stock"
-            value={form.stock}
-            onChange={handleChange}
-            placeholder="Stock"
-            type="number"
-            className={styles.input}
-          />
-
-          {/* 📸 INPUT FILE */}
-          <div className={`${styles.full} ${styles.fileWrapper}`}>
-            <label className={styles.fileLabel}>
-              {files.length > 0
-                ? "Agregar más imágenes"
-                : "Subir imágenes"}
-              <input
-                id="fileInput"
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                className={styles.fileInput}
-              />
-            </label>
-
-            {files.length > 0 && (
-              <span className={styles.fileName}>
-                {files.length} imagen(es) seleccionada(s)
-              </span>
-            )}
+          
+          <div className={styles.field}>
+            <input
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              placeholder="Nombre del producto"
+              className={`${styles.input} ${errors.title ? styles.errorInput : ""}`}
+            />
+            <p className={styles.errorText}>{errors.title || "\u00A0"}</p>
           </div>
 
-          {/* 🔥 PREVIEW GRID */}
+          <div className={styles.field}>
+            <input
+              name="brand"
+              value={form.brand}
+              onChange={handleChange}
+              placeholder="Marca"
+              className={styles.input}
+            />
+            <p className={styles.errorText}>{"\u00A0"}</p>
+          </div>
+
+          <div className={styles.field}>
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className={`${styles.select} ${errors.category ? styles.errorInput : ""}`}
+            >
+              <option value="">Seleccionar categoría</option>
+              <option value="gafas">Gafas / Lentes</option>
+              <option value="ropa">Ropa</option>
+              <option value="abanicos">Abanicos</option>
+              <option value="accesorios">Accesorios</option>
+            </select>
+            <p className={styles.errorText}>{errors.category || "\u00A0"}</p>
+          </div>
+
+          <div className={styles.field}>
+            <input
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              placeholder="Precio"
+              type="number"
+              className={`${styles.input} ${errors.price ? styles.errorInput : ""}`}
+            />
+            <p className={styles.errorText}>{errors.price || "\u00A0"}</p>
+          </div>
+
+          <div className={styles.field}>
+            <input
+              name="stock"
+              value={form.stock}
+              onChange={handleChange}
+              placeholder="Stock"
+              type="number"
+              className={styles.input}
+            />
+            <p className={styles.errorText}>{"\u00A0"}</p>
+          </div>
+
+          <div className={`${styles.full} ${styles.field}`}>
+            <div className={styles.fileWrapper}>
+              <label className={styles.fileLabel}>
+                {files.length > 0 ? "Agregar más imágenes" : "Subir imágenes"}
+                <input
+                  id="fileInput"
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className={styles.fileInput}
+                />
+              </label>
+
+              {files.length > 0 && (
+                <span className={styles.fileName}>
+                  {files.length} imagen(es)
+                </span>
+              )}
+            </div>
+            <p className={styles.errorText}>{errors.images || "\u00A0"}</p>
+          </div>
+
           {previews.length > 0 && (
             <div className={styles.previewGrid}>
               {previews.map((img, index) => (
                 <div key={index} className={styles.previewItem}>
                   <img src={img} alt="preview" />
-
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(index)}
@@ -232,13 +268,16 @@ const CreateProduct = () => {
             </div>
           )}
 
-          <textarea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            placeholder="Descripción"
-            className={`${styles.input} ${styles.full} ${styles.textarea}`}
-          />
+          <div className={`${styles.full} ${styles.field}`}>
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              placeholder="Descripción"
+              className={`${styles.input} ${styles.textarea}`}
+            />
+            <p className={styles.errorText}>{"\u00A0"}</p>
+          </div>
 
           <button
             type="submit"
