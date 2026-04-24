@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styles from "./Clothes.module.css";
-import Categories from '../../components/Categories/Categories';
+import Categories from '..//../Categories/Categories';
 
 
 const Clothes = () => {

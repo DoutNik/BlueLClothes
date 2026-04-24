@@ -1,11 +1,11 @@
 import styles from "./Glasses.module.css";
-import Categories from "../../components/Categories/Categories";
-import backgroundImage from "../../assets/backgroundImage.jpg";
+import Categories from "../../Categories/Categories";
+import backgroundImage from "../../../assets/backgroundImage.jpg";
 
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getProducts } from "../../REDUX/actions";
-import { filterByCategory } from "../../utils/filterProducts";
+import { getProducts } from "../../../REDUX/actions";
+import { filterByCategory } from "../../../utils/filterProducts";
 import { Link } from "react-router-dom";
 
 const Glasses = () => {
@@ -66,13 +66,8 @@ const Glasses = () => {
                     <div className={styles.content}>
                       <h5>{g.title}</h5>
                       <p>{g.description || g.desc}</p>
-
                       <p className={styles.extra}>Marca: {g.brand}</p>
-
                       <p className={styles.extra}>Stock: {g.stock}</p>
-
-                      {/* 👇 YA NO ES BUTTON */}
-                      <span className={styles.button}>Ver más</span>
                     </div>
 
                     <div className={styles.tag}>{g.title}</div>

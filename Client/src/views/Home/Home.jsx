@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Glasses from "../Glasses/Glasses";
 import styles from "./Home.module.css";
 import Categories from "../../components/Categories/Categories";
 import backgroundImage from "../../assets/backgroundImage.jpg";
