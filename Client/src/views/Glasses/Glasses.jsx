@@ -23,6 +23,12 @@ const Glasses = () => {
   // 🛡️ defensivo (por si algo falla)
   const glasses = filterByCategory(allProducts || [], "gafas");
 
+  const formatImage = (url) => {
+    if (!url) return "https://via.placeholder.com/500";
+
+    return url.replace("/upload/", "/upload/w_500,h_500,c_fill,g_auto/");
+  };
+
   return (
     <div
       className={styles.container}
@@ -48,11 +54,7 @@ const Glasses = () => {
                 <div className={styles.cardWrapper}>
                   <div className={styles.cardPro}>
                     <img
-                      src={
-                        g.imageUrl?.[0] ||
-                        g.image ||
-                        "https://via.placeholder.com/500"
-                      }
+                      src={formatImage(g.imageUrl?.[0] || g.image)}
                       alt={g.title}
                       className={styles.image}
                     />
