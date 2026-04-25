@@ -12,6 +12,7 @@ import Login from "./views/Login/Login";
 import Register from "./views/Register/Register";
 import Navbar from "./components/Navbar/Navbar";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
+import Cart from "./views/Cart/Cart";
 
 import "./App.css";
 
@@ -60,6 +61,7 @@ const App = () => {
               </AdminRoute>
             }
           />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
         <footer>Footer content</footer>
       </div>

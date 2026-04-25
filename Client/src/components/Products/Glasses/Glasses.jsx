@@ -29,6 +29,8 @@ const Glasses = () => {
     return url.replace("/upload/", "/upload/w_500,h_500,c_fill,g_auto/");
   };
 
+  
+
   return (
     <div
       className={styles.container}
