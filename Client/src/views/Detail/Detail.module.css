@@ -1,9 +1,10 @@
 .container {
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
   min-height: 100vh;
-  padding: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  padding: 20px;
 }
 
 .card {
@@ -92,6 +93,24 @@
 
 .outStock {
   color: #ff4d4d;
+}
+
+.quantityBox input {
+  background: rgba(255, 255, 255, 0.05); /* semi transparente */
+  border: 1px solid rgba(0, 255, 170, 0.4); /* neon */
+  color: white;
+
+  width: 60px;
+  padding: 5px;
+  border-radius: 8px;
+  margin-left: 1%;
+
+  outline: none;
+
+  backdrop-filter: blur(8px); /* 🔥 glass effect */
+  -webkit-backdrop-filter: blur(8px);
+
+  transition: all 0.3s ease;
 }
 
 /* 🛒 BOTONES */

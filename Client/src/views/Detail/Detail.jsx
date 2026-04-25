@@ -1,10 +1,14 @@
 import styles from "./Detail.module.css";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../../REDUX/actions";
 import api from "../../api/api";
+import backgroundImage from "../../assets/backgroundImage.jpg";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const dispatch = useDispatch();
 
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState(null);
@@ -29,9 +33,8 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleAction = () => {
-    if (quantity <= stock) {
-      console.log("Compra normal:", quantity);
-      // 👉 acá iría tu lógica de carrito
+    if (quantity <= product.stock) {
+      dispatch(addToCart({ ...product, quantity }));
     } else {
       console.log("Encargo:", quantity);
       // 👉 acá lógica de preorder
@@ -52,7 +55,12 @@ const ProductDetail = () => {
   } = product;
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+      }}
+    >
       <div className={styles.card}>
         {/* 📸 GALERÍA */}
         <div className={styles.gallery}>
@@ -77,9 +85,7 @@ const ProductDetail = () => {
         <div className={styles.info}>
           <h2>{title}</h2>
 
-          <p className={styles.brand}>
-            {brand} • {category}
-          </p>
+          <p className={styles.brand}>Marca: {brand}</p>
 
           <p className={styles.description}>{description}</p>
 
@@ -103,7 +109,7 @@ const ProductDetail = () => {
 
           {/* 🛒 ACCIONES */}
           <button className={styles.buyBtn} onClick={handleAction}>
-            {quantity <= stock ? "Comprar" : "Encargar"}
+            Agregar al carrito
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import styles from "./Navbar.module.css";
 import logo1 from "../../assets/logo2.png";
 
@@ -11,6 +12,10 @@ const Navbar = () => {
 
   const user =
     storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
+
+  const items = useSelector((state) => state.cart.items);
+
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -31,12 +36,18 @@ const Navbar = () => {
 
           {/* DESKTOP MENU */}
           <div className={styles.desktopMenu}>
-            <Link className={styles.link} to="/">Inicio</Link>
+            <Link className={styles.link} to="/">
+              Inicio
+            </Link>
 
             {!user && (
               <>
-                <Link className={styles.link} to="/login">Login</Link>
-                <Link className={styles.link} to="/register">Registrarse</Link>
+                <Link className={styles.link} to="/login">
+                  Login
+                </Link>
+                <Link className={styles.link} to="/register">
+                  Registrarse
+                </Link>
               </>
             )}
 
@@ -52,6 +63,13 @@ const Navbar = () => {
                   </Link>
                 )}
 
+                <Link className={styles.cartLink} to="/cart">
+                  🛒
+                  {totalItems > 0 && (
+                    <span className={styles.badge}>{totalItems}</span>
+                  )}
+                </Link>
+
                 <button className={styles.logoutBtn} onClick={handleLogout}>
                   Logout
                 </button>
@@ -60,10 +78,7 @@ const Navbar = () => {
           </div>
 
           {/* MOBILE TOGGLER */}
-          <button
-            className={styles.toggler}
-            onClick={() => setMenuOpen(true)}
-          >
+          <button className={styles.toggler} onClick={() => setMenuOpen(true)}>
             ☰
           </button>
         </div>
@@ -72,10 +87,7 @@ const Navbar = () => {
       {/* MODAL MOBILE */}
       {menuOpen && (
         <div className={styles.overlay} onClick={closeMenu}>
-          <div
-            className={styles.modal}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeBtn} onClick={closeMenu}>
               ✕
             </button>
@@ -89,7 +101,11 @@ const Navbar = () => {
                 <Link to="/login" className={styles.link} onClick={closeMenu}>
                   Login
                 </Link>
-                <Link to="/register" className={styles.link} onClick={closeMenu}>
+                <Link
+                  to="/register"
+                  className={styles.link}
+                  onClick={closeMenu}
+                >
                   Registrarse
                 </Link>
               </>
@@ -110,6 +126,10 @@ const Navbar = () => {
                     ⚡ Admin Panel
                   </Link>
                 )}
+
+                <Link to="/cart" className={styles.link} onClick={closeMenu}>
+                  🛒 Carrito ({totalItems})
+                </Link>
 
                 <button className={styles.logoutBtn} onClick={handleLogout}>
                   Logout
