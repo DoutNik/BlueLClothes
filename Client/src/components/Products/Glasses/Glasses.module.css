@@ -17,7 +17,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 20px;
 }
 
@@ -58,7 +58,7 @@
 
 .price {
   position: absolute;
-  bottom: 10px;   /* 👈 antes top */
+  bottom: 10px;
   right: 10px;
 
   background: rgba(0, 0, 0, 0.75);
@@ -103,7 +103,7 @@
     to top,
     rgba(0, 0, 0, 0.8),
     rgba(0, 0, 0, 0)
-  ); /* 👈 clave */
+  );
 
   opacity: 0;
   transform: translateY(20px);
@@ -115,14 +115,14 @@
 .content h5 {
   font-size: 0.9rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 👈 máximo 2 líneas */
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .content p {
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 👈 máximo 2 líneas */
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

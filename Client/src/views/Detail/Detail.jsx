@@ -1,19 +1,22 @@
 import styles from "./Detail.module.css";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../../REDUX/actions";
+import toast from "react-hot-toast";
 import api from "../../api/api";
 import backgroundImage from "../../assets/backgroundImage.jpg";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
-
-  const [quantity, setQuantity] = useState(1);
+  const navigate = useNavigate();
+  const cartItems = useSelector((state) => state.cart.items);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImg, setSelectedImg] = useState("");
+
+  const isInCart = cartItems.some((item) => item.id === Number(id));
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -33,12 +36,15 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleAction = () => {
-    if (quantity <= product.stock) {
-      dispatch(addToCart({ ...product, quantity }));
-    } else {
-      console.log("Encargo:", quantity);
-      // 👉 acá lógica de preorder
-    }
+    if (isInCart) return;
+    dispatch(addToCart({ ...product, quantity: 1 }));
+
+    toast.success(
+      "Producto agregado al carrito. Podrás elegir la cantidad dentro del carrito antes de finalizar la compra.",
+      {
+        duration: 3500,
+      },
+    );
   };
 
   if (loading) return <p>Cargando...</p>;
@@ -96,21 +102,25 @@ const ProductDetail = () => {
             Stock disponible: {stock}
           </p>
 
-          {/* 🔢 CANTIDAD */}
-          <div className={styles.quantityBox}>
-            <label>Cantidad:</label>
-            <input
-              type="number"
-              min="1"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-            />
-          </div>
-
           {/* 🛒 ACCIONES */}
-          <button className={styles.buyBtn} onClick={handleAction}>
-            Agregar al carrito
-          </button>
+          <div className={styles.actions}>
+            <button
+              className={isInCart ? styles.inCartBtn : styles.buyBtn}
+              onClick={handleAction}
+              disabled={isInCart}
+            >
+              {isInCart ? "Producto en carrito" : "Agregar al carrito"}
+            </button>
+
+            {isInCart && (
+              <button
+                className={styles.viewCartBtn}
+                onClick={() => navigate("/cart")}
+              >
+                Ver carrito
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
