@@ -10,6 +10,8 @@ const AdminDashboard = () => {
     drafts: 0,
   });
 
+  const orders = useSelector((state) => state.orders);
+
   useEffect(() => {
     // 🔧 Simulación (después conectás a tu backend)
     setMetrics({
@@ -55,6 +57,10 @@ const AdminDashboard = () => {
 
         <Link to="/admin/create-product" className={styles.actionCard}>
           ➕ Crear Producto
+        </Link>
+
+        <Link to="/admin/orders" className={styles.actionCard}>
+          💰 Ventas
         </Link>
 
         <Link to="/admin/users" className={styles.actionCard}>

@@ -12,6 +12,8 @@ import Login from "./views/Login/Login";
 import Register from "./views/Register/Register";
 import Navbar from "./components/Navbar/Navbar";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
+import AdminOrders from "./views/Admin/AdminOrders";
+
 import Cart from "./views/Cart/Cart";
 
 import "./App.css";
@@ -40,6 +42,14 @@ const App = () => {
             element={
               <AdminRoute>
                 <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <AdminRoute>
+                <AdminOrders />
               </AdminRoute>
             }
           />

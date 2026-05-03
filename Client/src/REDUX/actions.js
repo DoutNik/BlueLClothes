@@ -59,3 +59,25 @@ export const decreaseQty = (id) => ({
 export const clearCart = () => ({
   type: CLEAR_CART,
 });
+
+
+// ORDERS
+export const getOrders = () => {
+  return async (dispatch) => {
+    dispatch({ type: "GET_ORDERS_REQUEST" });
+
+    try {
+      const res = await api.get("/orders");
+
+      dispatch({
+        type: "GET_ORDERS_SUCCESS",
+        payload: res.data,
+      });
+    } catch (err) {
+      dispatch({
+        type: "GET_ORDERS_FAILURE",
+        payload: err.message,
+      });
+    }
+  };
+};

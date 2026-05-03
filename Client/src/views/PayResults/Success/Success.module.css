@@ -1,0 +1,14 @@
+.container {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #0f0f0f;
+}
+
+.modal {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  animation: fade 0.4s ease;
+}

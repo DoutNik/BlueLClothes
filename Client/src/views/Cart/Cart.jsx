@@ -5,6 +5,7 @@ import {
   decreaseQty,
   clearCart,
 } from "../../REDUX/actions";
+import api from "../../api/api";
 import backgroundImage from "../../assets/backgroundImage.jpg";
 import styles from "./Cart.module.css";
 
@@ -17,6 +18,19 @@ const Cart = () => {
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
+
+  const handleBuy = async () => {
+    try {
+      const res = await api.post("/payment/create-preference", {
+        items,
+      });
+
+      window.location.href = res.data.init_point;
+    } catch (error) {
+      console.log(error);
+      alert("Error al iniciar pago");
+    }
+  };
 
   if (!items.length) {
     return (
@@ -68,7 +82,7 @@ const Cart = () => {
 
         <div className={styles.footer}>
           <h2>Total: ${total}</h2>
-
+          <button onClick={handleBuy}>Finalizar Compra</button>
           <button onClick={() => dispatch(clearCart())}>Vaciar carrito</button>
         </div>
       </div>
