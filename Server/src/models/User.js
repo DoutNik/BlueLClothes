@@ -23,15 +23,30 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
 
-      firstName: DataTypes.STRING,
-      lastName: DataTypes.STRING,
-      phone: DataTypes.STRING,
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
 
-      address: DataTypes.STRING,
-      city: DataTypes.STRING,
+      address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      city: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       country: {
         type: DataTypes.STRING,
-        defaultValue: "Argentina",
+        allowNull: true,
       },
 
       role: {

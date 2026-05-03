@@ -1,0 +1,219 @@
+.container {
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
+}
+
+/* Título */
+.title {
+  text-align: center;
+  margin-bottom: 40px;
+  color: rgb(27, 7, 174);
+}
+
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+
+/* Wrapper para achicar cards */
+.cardWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+/* CARD */
+.cardPro {
+  position: relative;
+  width: 100%;
+  max-width: 240px; /* 👈 controla tamaño */
+  aspect-ratio: 1 / 1.15;
+  overflow: hidden;
+  border-radius: 16px;
+  cursor: pointer;
+
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  background: rgba(40, 1, 1, 0.75);
+  transition: 0.3s;
+}
+
+.cardPro:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Imagen */
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: rgb(125, 124, 124);
+  transition: transform 0.6s ease;
+}
+
+.price {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+
+  background: rgba(0, 0, 0, 0.75);
+  color: #00ffae;
+
+  padding: 6px 10px;
+  border-radius: 8px;
+
+  font-weight: bold;
+  font-size: 14px;
+
+  z-index: 3;
+
+  box-shadow: 0 0 10px rgba(0, 255, 174, 0.6);
+}
+
+.extra {
+  font-size: 14px; 
+  font-weight: 500;
+  opacity: 0.9;
+  margin: 4px 0;
+}
+
+/* Overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  transition: background 0.4s ease;
+}
+
+/* Contenido */
+.content {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 16px;
+
+  color: white;
+
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8),
+    rgba(0, 0, 0, 0)
+  );
+
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.4s ease;
+
+  z-index: 2;
+}
+
+.content h5 {
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.content p {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+
+/* Tag */
+.tag {
+  position: absolute;
+  top: 12px;
+  right: -35px;
+  background: rgba(255, 255, 255, 0.9);
+  color: black;
+  padding: 5px 45px;
+  transform: rotate(45deg);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* Botón */
+.button {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 5px 12px;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.button:hover {
+  background: white;
+  color: black;
+}
+
+/* Hover */
+.cardPro:hover .image {
+  transform: scale(1.08);
+}
+
+.cardPro:hover .overlay {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.cardPro:hover .content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+---
+
+/* 📱 TABLET */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+---
+
+/* 📱 MOBILE */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .cardPro {
+    max-width: 180px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  .content h5 {
+    font-size: 0.85rem;
+  }
+
+  .content p {
+    font-size: 0.7rem;
+  }
+
+  .button {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+  }
+
+  .tag {
+    font-size: 0.6rem;
+    right: -30px;
+  }
+}

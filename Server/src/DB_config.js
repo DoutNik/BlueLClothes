@@ -43,10 +43,13 @@ sequelize.models = Object.fromEntries(capsEntries);
 const {
   Product,
   User,
+  Order,
+  OrderItem,
 } = sequelize.models;
-// models/index.js o db.js
-User.hasMany(Order);
-Order.belongsTo(User);
+
+Order.hasMany(OrderItem)
+OrderItem.belongsTo(Order)
+
 
 module.exports = {
   ...sequelize.models,

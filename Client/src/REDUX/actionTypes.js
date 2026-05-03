@@ -1,1 +1,15 @@
 export const GET_ALL_USERS = "GET_ALL_USERS";
+
+
+
+export const GET_PRODUCTS_REQUEST = "GET_PRODUCTS_REQUEST";
+export const GET_PRODUCTS_SUCCESS = "GET_PRODUCTS_SUCCESS";
+export const GET_PRODUCTS_FAILURE = "GET_PRODUCTS_FAILURE";
+
+
+/* CART */
+export const ADD_TO_CART = "ADD_TO_CART";
+export const REMOVE_FROM_CART = "REMOVE_FROM_CART";
+export const INCREASE_QTY = "INCREASE_QTY";
+export const DECREASE_QTY = "DECREASE_QTY";
+export const CLEAR_CART = "CLEAR_CART";

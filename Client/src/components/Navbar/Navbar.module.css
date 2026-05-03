@@ -1,41 +1,163 @@
-/* Navbar */
 .navbar {
-  position: fixed;  /* Fija la navbar en la parte superior */
-  top: 0;           /* Asegura que esté en la parte superior de la pantalla */
-  left: 0;          /* Asegura que esté alineada a la izquierda */
-  width: 100%;      /* Asegura que ocupe todo el ancho de la pantalla */
-  z-index: 1000;    /* Asegura que la navbar esté encima de otros elementos */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para hacerla más visible */
-  background-color: rgba(0, 0, 0, 1);
-  z-index: 1030;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.429);
+  z-index: 1000;
 }
 
-.navbar-brand {
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: block;
-  aspect-ratio: 3 / 1; /* Ajusta según las proporciones de tu imagen */
-  width: 200px; /* Cambia a lo que necesites */
-  height: auto; /* Se ajustará automáticamente */
-  text-indent: -9999px; /* Oculta el texto sin romper accesibilidad */
-  font-weight: bold;
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+  padding: 0 20px;
 }
 
-
-.navbar-nav .nav-link {
-  color: #333;
-}
-
-.navbar-nav .nav-link:hover {
-  color: #007bff;  /* Color al pasar el mouse sobre los enlaces */
-}
-
-.navbar-logo {
+.logo {
   height: 40px;
-  object-fit: contain;
 }
-/* Para que el contenido debajo de la navbar no quede cubierto */
-body {
-  padding-top: 80px; /* Ajusta según el alto de tu navbar */
+
+/* DESKTOP MENU */
+.desktopMenu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* MOBILE TOGGLER */
+.toggler {
+  display: none;
+  font-size: 28px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+/* LINKS */
+.link {
+  color: white;
+  text-decoration: none;
+}
+
+.link:hover {
+  color: #007bff;
+}
+
+.user {
+  color: white;
+}
+
+/* BOTONES */
+.adminBtn {
+  background: orange;
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: black;
+  text-decoration: none;
+}
+
+.logoutBtn {
+  background: red;
+  border: none;
+  padding: 6px 12px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* MODAL */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+
+  /* Fondo semitransparente */
+  background: rgba(0, 0, 0, 0.4);
+
+  /* 🔥 BLUR REAL */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 2000;
+}
+
+.modal {
+  background: rgba(20, 20, 20, 0.456);
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 320px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  /* profundidad visual */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  animation: fadeIn 0.25s ease;
+}
+
+.cartLink {
+  position: relative;
+  color: white;
+  text-decoration: none;
+  font-size: 22px;
+}
+
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -12px;
+  background: #111;
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.closeBtn {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .desktopMenu {
+    display: none;
+  }
+
+  .toggler {
+    display: block;
+  }
 }

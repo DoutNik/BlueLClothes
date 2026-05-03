@@ -1,90 +1,145 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import styles from "./Navbar.module.css";
 import logo1 from "../../assets/logo2.png";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const storedUser = localStorage.getItem("user");
+
+  const user =
+    storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
+
+  const items = useSelector((state) => state.cart.items);
+
+  const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/");
-    window.location.reload(); // simple refresh
+    window.location.reload();
   };
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <nav className="navbar navbar-expand-lg fixed-top">
-      <div className="container">
-        <Link to="/">
-          <img src={logo1} alt="BlueGlass Logo" className="navbar-logo" />
-        </Link>
+    <>
+      <nav className={styles.navbar}>
+        <div className={styles.container}>
+          <Link to="/">
+            <img src={logo1} alt="logo" className={styles.logo} />
+          </Link>
 
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
+          {/* DESKTOP MENU */}
+          <div className={styles.desktopMenu}>
+            <Link className={styles.link} to="/">
+              Inicio
+            </Link>
 
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto align-items-center gap-2">
-            
-            {/* LINKS BASE */}
-            <li className="nav-item">
-              <Link className="nav-link" to="/">Inicio</Link>
-            </li>
-
-            {/* NO LOGUEADO */}
             {!user && (
               <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/login">Login</Link>
-                </li>
-
-                <li className="nav-item">
-                  <Link className="nav-link" to="/register">
-                    Registrarse
-                  </Link>
-                </li>
+                <Link className={styles.link} to="/login">
+                  Login
+                </Link>
+                <Link className={styles.link} to="/register">
+                  Registrarse
+                </Link>
               </>
             )}
 
-            {/* LOGUEADO */}
             {user && (
               <>
-                <li className="nav-item">
-                  <span className="nav-link text-light">
-                    Hola {user.firstName || "User"}
-                  </span>
-                </li>
+                <span className={styles.user}>
+                  Hola {user.firstName || "User"}
+                </span>
 
-                {/* ADMIN */}
                 {user.role === "admin" && (
-                  <li className="nav-item">
-                    <Link className="btn btn-warning btn-sm" to="/admin/products">
-                      Admin
-                    </Link>
-                  </li>
+                  <Link className={styles.adminBtn} to="/admin/dashboard">
+                    ⚡ Admin Panel
+                  </Link>
                 )}
 
-                <li className="nav-item">
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </li>
+                <Link className={styles.cartLink} to="/cart">
+                  🛒
+                  {totalItems > 0 && (
+                    <span className={styles.badge}>{totalItems}</span>
+                  )}
+                </Link>
+
+                <button className={styles.logoutBtn} onClick={handleLogout}>
+                  Logout
+                </button>
               </>
             )}
-          </ul>
+          </div>
+
+          {/* MOBILE TOGGLER */}
+          <button className={styles.toggler} onClick={() => setMenuOpen(true)}>
+            ☰
+          </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* MODAL MOBILE */}
+      {menuOpen && (
+        <div className={styles.overlay} onClick={closeMenu}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={closeMenu}>
+              ✕
+            </button>
+
+            <Link to="/" className={styles.link} onClick={closeMenu}>
+              Inicio
+            </Link>
+
+            {!user && (
+              <>
+                <Link to="/login" className={styles.link} onClick={closeMenu}>
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className={styles.link}
+                  onClick={closeMenu}
+                >
+                  Registrarse
+                </Link>
+              </>
+            )}
+
+            {user && (
+              <>
+                <span className={styles.user}>
+                  Hola {user.firstName || "User"}
+                </span>
+
+                {user.role === "admin" && (
+                  <Link
+                    to="/admin/dashboard"
+                    className={styles.adminBtn}
+                    onClick={closeMenu}
+                  >
+                    ⚡ Admin Panel
+                  </Link>
+                )}
+
+                <Link to="/cart" className={styles.link} onClick={closeMenu}>
+                  🛒 Carrito ({totalItems})
+                </Link>
+
+                <button className={styles.logoutBtn} onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

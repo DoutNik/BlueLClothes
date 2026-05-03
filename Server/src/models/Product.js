@@ -34,17 +34,21 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       imageUrl: {
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: false,
       },
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
       },
+      status: {
+        type: DataTypes.ENUM("draft", "ready", "published"),
+        defaultValue: "draft",
+      },
     },
     {
       paranoid: true, // soft delete
       timestamps: true,
-    }
+    },
   );
 };

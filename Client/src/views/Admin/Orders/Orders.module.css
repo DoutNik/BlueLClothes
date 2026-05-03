@@ -1,0 +1,75 @@
+.container {
+  min-height: 100vh;
+  padding: 40px;
+  background: black;
+  color: white;
+}
+
+.title {
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 30px;
+  color: #00ffae;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 174, 0.2);
+  border-radius: 18px;
+  padding: 20px;
+  transition: 0.3s;
+}
+
+.card:hover {
+  box-shadow: 0 0 20px #00ffae33;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.status {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.pending {
+  background: #ffcc00;
+  color: black;
+}
+
+.approved {
+  background: #00ffae;
+  color: black;
+}
+
+.rejected {
+  background: #ff4d4d;
+}
+
+.body {
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
+.products {
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: 10px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  opacity: 0.85;
+}
