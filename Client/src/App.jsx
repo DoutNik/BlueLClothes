@@ -12,7 +12,7 @@ import Login from "./views/Login/Login";
 import Register from "./views/Register/Register";
 import Navbar from "./components/Navbar/Navbar";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
-import AdminOrders from "./views/Admin/AdminOrders";
+import AdminOrders from "./views/Admin/Orders/Orders";
 
 import Cart from "./views/Cart/Cart";
 

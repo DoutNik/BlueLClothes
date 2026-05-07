@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const {
   getOrders,
-} = require("../controllers/OrederControllers");
+} = require("../controllers/OrderControllers");
 
 router.get("/", getOrders);
 

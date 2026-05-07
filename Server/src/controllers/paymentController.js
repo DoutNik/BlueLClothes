@@ -1,73 +1,87 @@
 const mercadopago = require("mercadopago");
-const { Order, OrderItem, Product } = require("../models");
+const { Order, OrderItem, Product } = require("../DB_config");
 
-mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN,
+const {
+  MercadoPagoConfig,
+  Preference,
+} = require("mercadopago");
+
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN,
 });
 
-exports.createPreference = async (req, res) => {
+const createPreference = async (req, res) => {
   try {
     const { items } = req.body;
 
-    // 🔒 recalcular precios desde DB (seguridad)
-    let total = 0;
-
-    const order = await Order.create({
-      status: "pending",
-      total: 0,
-    });
-
-    const mpItems = [];
-
-    for (let item of items) {
-      const product = await Product.findByPk(item.id);
-
-      if (!product) continue;
-
-      total += product.price * item.quantity;
-
-      await OrderItem.create({
-        orderId: order.id,
-        productId: product.id,
-        title: product.title,
-        price: product.price,
-        quantity: item.quantity,
-      });
-
-      mpItems.push({
-        title: product.title,
-        quantity: item.quantity,
-        unit_price: Number(product.price),
-        currency_id: "ARS",
+    if (!items?.length) {
+      return res.status(400).json({
+        error: "No hay productos",
       });
     }
 
-    order.total = total;
-    await order.save();
+    // 🔥 crear orden pendiente
+    const total = items.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
 
-    const preference = {
-      items: mpItems,
-      external_reference: String(order.id),
+    const order = await Order.create({
+      total,
+      status: "pending",
+    });
 
-      back_urls: {
-        success: `${process.env.FRONT_URL}/success`,
-        failure: `${process.env.FRONT_URL}/failure`,
-        pending: `${process.env.FRONT_URL}/pending`,
+    // 🔥 guardar productos de la orden
+    for (const item of items) {
+      await OrderItem.create({
+        orderId: order.id,
+        title: item.title,
+        quantity: item.quantity,
+        price: item.price,
+        productId: item.id,
+      });
+    }
+
+    const preference = new Preference(client);
+
+    const result = await preference.create({
+      body: {
+        items: items.map((item) => ({
+          title: item.title,
+          quantity: item.quantity,
+          unit_price: Number(item.price),
+          currency_id: "ARS",
+        })),
+
+        metadata: {
+          orderId: order.id,
+        },
+
+        back_urls: {
+          success: "http://localhost:5173/payment-success",
+          failure: "http://localhost:5173/payment-failure",
+          pending: "http://localhost:5173/payment-pending",
+        },
+
+        auto_return: "approved",
       },
-
-      auto_return: "approved",
-      notification_url: `${process.env.BACK_URL}/payment/webhook`,
-    };
-
-    const response = await mercadopago.preferences.create(preference);
+    });
 
     res.json({
-      init_point: response.body.init_point,
+      id: result.id,
+      init_point: result.init_point,
     });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Error creando pago" });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Error creando preferencia",
+    });
   }
+};
+
+module.exports = {
+  createPreference,
 };
 
 exports.webhook = async (req, res) => {

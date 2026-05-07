@@ -1,13 +1,28 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
   const OrderItem = sequelize.define("OrderItem", {
-    title: DataTypes.STRING,
-    price: DataTypes.FLOAT,
-    quantity: DataTypes.INTEGER,
-    productId: DataTypes.INTEGER,
+    title: {
+      type: DataTypes.STRING,
+    },
+
+    price: {
+      type: DataTypes.FLOAT,
+    },
+
+    quantity: {
+      type: DataTypes.INTEGER,
+    },
+
+    productId: {
+      type: DataTypes.INTEGER,
+    },
   });
 
   OrderItem.associate = (models) => {
-    OrderItem.belongsTo(models.Order, { foreignKey: "orderId" });
+    OrderItem.belongsTo(models.Order, {
+      foreignKey: "orderId",
+    });
   };
 
   return OrderItem;

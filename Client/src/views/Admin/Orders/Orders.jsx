@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getOrders } from "../../REDUX/actions";
-import styles from "./AdminOrders.module.css";
+import { getOrders } from "../../../REDUX/actions";
+import styles from "./Orders.module.css";
 
 const Orders = () => {
   const dispatch = useDispatch();
