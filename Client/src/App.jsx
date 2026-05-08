@@ -17,6 +17,7 @@ import ProductManagement from "./views/Admin/ProductManagement/ProductManagement
 import Success from "./views/PayResults/Success/Success";
 import PaymentPending from "./views/PayResults/Pending/Pending";
 import PaymentFailed from "./views/PayResults/Failed/Failed";
+import Footer from "./components/Footer/Footer";
 
 import Cart from "./views/Cart/Cart";
 
@@ -88,7 +89,7 @@ const App = () => {
           <Route path="/payment-pending" element={<PaymentPending />} />
           <Route path="/payment-failed" element={<PaymentFailed />} />
         </Routes>
-        <footer>Footer content</footer>
+        <Footer />
       </div>
     </Router>
   );
