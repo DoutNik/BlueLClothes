@@ -1,14 +1,21 @@
-const mercadopago = require("mercadopago");
-const { Order, OrderItem, Product } = require("../DB_config");
-
 const {
   MercadoPagoConfig,
   Preference,
+  Payment,
 } = require("mercadopago");
+
+const {
+  Order,
+  OrderItem,
+  Product,
+} = require("../DB_config");
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
 });
+
+const preference = new Preference(client);
+const paymentClient = new Payment(client);
 
 const createPreference = async (req, res) => {
   try {
@@ -20,18 +27,20 @@ const createPreference = async (req, res) => {
       });
     }
 
-    // 🔥 crear orden pendiente
+    // 🔥 TOTAL
     const total = items.reduce(
-      (acc, item) => acc + item.price * item.quantity,
+      (acc, item) =>
+        acc + item.price * item.quantity,
       0
     );
 
+    // 🔥 CREAR ORDEN
     const order = await Order.create({
       total,
       status: "pending",
     });
 
-    // 🔥 guardar productos de la orden
+    // 🔥 ITEMS
     for (const item of items) {
       await OrderItem.create({
         orderId: order.id,
@@ -42,8 +51,7 @@ const createPreference = async (req, res) => {
       });
     }
 
-    const preference = new Preference(client);
-
+    // 🔥 PREFERENCE
     const result = await preference.create({
       body: {
         items: items.map((item) => ({
@@ -53,26 +61,33 @@ const createPreference = async (req, res) => {
           currency_id: "ARS",
         })),
 
-        metadata: {
-          orderId: order.id,
-        },
+        external_reference: String(order.id),
 
         back_urls: {
-          success: "http://localhost:5173/payment-success",
-          failure: "http://localhost:5173/payment-failure",
-          pending: "http://localhost:5173/payment-pending",
+          success:
+            "https://draconic-syndetically-kaci.ngrok-free.dev/payment-success",
+
+          failure:
+            "https://draconic-syndetically-kaci.ngrok-free.dev/payment-failure",
+
+          pending:
+            "https://draconic-syndetically-kaci.ngrok-free.dev/payment-pending",
         },
 
         auto_return: "approved",
+
+        notification_url:
+          "https://draconic-syndetically-kaci.ngrok-free.dev/payment/webhook",
       },
     });
 
     res.json({
       id: result.id,
       init_point: result.init_point,
+      sandbox_init_point: result.sandbox_init_point,
     });
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     res.status(500).json({
       error: "Error creando preferencia",
@@ -80,46 +95,73 @@ const createPreference = async (req, res) => {
   }
 };
 
-module.exports = {
-  createPreference,
-};
-
-exports.webhook = async (req, res) => {
+const webhook = async (req, res) => {
   try {
-    const payment = req.body.data;
+    const paymentId = req.body?.data?.id;
 
-    if (!payment?.id) return res.sendStatus(200);
+    if (!paymentId) {
+      return res.sendStatus(200);
+    }
 
-    const mpRes = await mercadopago.payment.findById(payment.id);
+    // 🔥 BUSCAR PAGO
+    const payment =
+      await paymentClient.get({
+        id: paymentId,
+      });
 
-    const orderId = mpRes.body.external_reference;
+    const orderId =
+      payment.external_reference;
 
-    if (!orderId) return res.sendStatus(200);
+    if (!orderId) {
+      return res.sendStatus(200);
+    }
 
-    const order = await Order.findByPk(orderId, {
-      include: OrderItem,
-    });
+    const order = await Order.findByPk(
+      orderId,
+      {
+        include: OrderItem,
+      }
+    );
 
-    if (!order) return res.sendStatus(200);
+    if (!order) {
+      return res.sendStatus(200);
+    }
 
-    if (mpRes.body.status === "approved") {
+    // 🔥 APROBADO
+    if (payment.status === "approved") {
       order.status = "approved";
-      order.paymentId = payment.id;
+      order.paymentId = paymentId;
+
       await order.save();
 
-      // 🔥 descontar stock
-      for (let item of order.OrderItems) {
-        const product = await Product.findByPk(item.productId);
+      // 🔥 DESCONTAR STOCK
+      for (const item of order.OrderItems) {
+        const product =
+          await Product.findByPk(
+            item.productId
+          );
+
         if (product) {
           product.stock -= item.quantity;
+
+          if (product.stock < 0) {
+            product.stock = 0;
+          }
+
           await product.save();
         }
       }
     }
 
     res.sendStatus(200);
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
+
     res.sendStatus(500);
   }
+};
+
+module.exports = {
+  createPreference,
+  webhook,
 };

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { clearCart } from "../REDUX/actions";
+import { clearCart } from "../../../REDUX/actions";
 import styles from "./Success.module.css";
 
 const Success = () => {

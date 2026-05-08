@@ -1,4 +1,4 @@
-const { Order } = require("../DB_config");
+const { Order, OrderItem } = require("../DB_config");
 
 exports.getOrders = async (req, res) => {
   const orders = await Order.findAll({

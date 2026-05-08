@@ -25,7 +25,7 @@ const Cart = () => {
         items,
       });
 
-      window.location.href = res.data.init_point;
+      window.location.href = res.data.sandbox_init_point;
     } catch (error) {
       console.log(error);
       alert("Error al iniciar pago");
