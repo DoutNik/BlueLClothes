@@ -29,9 +29,10 @@ const Footer = () => {
 
           <Link to="/">Inicio</Link>
 
-          <Link to="/products">
-            Productos
+          <Link to="/glasses">
+            Lentes/Gafas
           </Link>
+        
 
           <Link to="/cart">Carrito</Link>
         </div>
@@ -41,7 +42,7 @@ const Footer = () => {
           <h3>Contacto</h3>
 
           <a
-            href="https://wa.me/5493510000000"
+            href="https://wa.me/5493541695544"
             target="_blank"
           >
             WhatsApp
@@ -53,7 +54,7 @@ const Footer = () => {
             contacto@hypnotika.com
           </a>
 
-          <span>Córdoba, Argentina</span>
+          <span>Villa Carlos Paz, Córdoba, Argentina</span>
         </div>
 
         {/* SOCIAL */}
@@ -62,7 +63,7 @@ const Footer = () => {
 
           <div className={styles.icons}>
             <a
-              href="https://instagram.com"
+              href="https://instagram.com/blueglass1_"
               target="_blank"
             >
               <FaInstagram />
@@ -76,7 +77,7 @@ const Footer = () => {
             </a>
 
             <a
-              href="https://wa.me/5493510000000"
+              href="https://wa.me/5493541695544"
               target="_blank"
             >
               <FaWhatsapp />

@@ -21,7 +21,8 @@ module.exports = (sequelize) => {
 
   OrderItem.associate = (models) => {
     OrderItem.belongsTo(models.Order, {
-      foreignKey: "orderId",
+      foreignKey: "OrderId",
+      as: "Order",
     });
   };
 

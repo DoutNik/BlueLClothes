@@ -19,5 +19,13 @@ module.exports = (sequelize) => {
     },
   });
 
+  Order.associate = (models) => {
+    Order.hasMany(models.OrderItem, {
+      foreignKey: "OrderId",
+      as: "OrderItems",
+      onDelete: "CASCADE",
+    });
+  };
+
   return Order;
 };

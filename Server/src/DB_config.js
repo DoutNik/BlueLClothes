@@ -40,6 +40,12 @@ let capsEntries = entries.map((entry) => [
 ]);
 sequelize.models = Object.fromEntries(capsEntries);
 
+Object.values(sequelize.models).forEach((model) => {
+  if (model.associate) {
+    model.associate(sequelize.models);
+  }
+});
+
 const {
   Product,
   User,
@@ -47,8 +53,6 @@ const {
   OrderItem,
 } = sequelize.models;
 
-Order.hasMany(OrderItem)
-OrderItem.belongsTo(Order)
 
 
 module.exports = {

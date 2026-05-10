@@ -13,6 +13,7 @@ const Orders = () => {
   }, [dispatch]);
 
   if (loading) return <p>Cargando ventas...</p>;
+console.log(orders);
 
   return (
     <div className={styles.container}>

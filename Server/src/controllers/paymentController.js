@@ -1,14 +1,6 @@
-const {
-  MercadoPagoConfig,
-  Preference,
-  Payment,
-} = require("mercadopago");
+const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 
-const {
-  Order,
-  OrderItem,
-  Product,
-} = require("../DB_config");
+const { Order, OrderItem, Product } = require("../DB_config");
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
@@ -29,9 +21,8 @@ const createPreference = async (req, res) => {
 
     // 🔥 TOTAL
     const total = items.reduce(
-      (acc, item) =>
-        acc + item.price * item.quantity,
-      0
+      (acc, item) => acc + item.price * item.quantity,
+      0,
     );
 
     // 🔥 CREAR ORDEN
@@ -43,7 +34,7 @@ const createPreference = async (req, res) => {
     // 🔥 ITEMS
     for (const item of items) {
       await OrderItem.create({
-        orderId: order.id,
+        OrderId: order.id,
         title: item.title,
         quantity: item.quantity,
         price: item.price,
@@ -104,24 +95,24 @@ const webhook = async (req, res) => {
     }
 
     // 🔥 BUSCAR PAGO
-    const payment =
-      await paymentClient.get({
-        id: paymentId,
-      });
+    const payment = await paymentClient.get({
+      id: paymentId,
+    });
 
-    const orderId =
-      payment.external_reference;
+    const orderId = payment.external_reference;
 
     if (!orderId) {
       return res.sendStatus(200);
     }
 
-    const order = await Order.findByPk(
-      orderId,
-      {
-        include: OrderItem,
-      }
-    );
+    const order = await Order.findByPk(orderId, {
+      include: [
+        {
+          model: OrderItem,
+          as: "OrderItems",
+        },
+      ],
+    });
 
     if (!order) {
       return res.sendStatus(200);
@@ -136,10 +127,7 @@ const webhook = async (req, res) => {
 
       // 🔥 DESCONTAR STOCK
       for (const item of order.OrderItems) {
-        const product =
-          await Product.findByPk(
-            item.productId
-          );
+        const product = await Product.findByPk(item.productId);
 
         if (product) {
           product.stock -= item.quantity;
