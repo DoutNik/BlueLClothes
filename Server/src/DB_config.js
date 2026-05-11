@@ -53,6 +53,8 @@ const {
   OrderItem,
 } = sequelize.models;
 
+User.hasMany(Notification);
+Notification.belongsTo(User);
 
 
 module.exports = {

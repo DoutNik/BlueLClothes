@@ -8,6 +8,13 @@ import {
   INCREASE_QTY,
   DECREASE_QTY,
   CLEAR_CART,
+  GET_NOTIFICATIONS_REQUEST,
+  GET_NOTIFICATIONS_SUCCESS,
+  GET_NOTIFICATIONS_FAILURE,
+  ADD_NOTIFICATION,
+  MARK_NOTIFICATION_READ,
+  MARK_ALL_NOTIFICATIONS_READ,
+  DELETE_NOTIFICATION
 } from "./actionTypes";
 
 /* PRODUCTS */
@@ -81,3 +88,85 @@ export const getOrders = () => {
     }
   };
 };
+
+export const getNotifications =
+  () => async (dispatch) => {
+    try {
+      dispatch({
+        type:
+          "GET_NOTIFICATIONS_REQUEST",
+      });
+
+      const res = await api.get(
+        "/notifications"
+      );
+
+      dispatch({
+        type:
+          "GET_NOTIFICATIONS_SUCCESS",
+        payload: res.data,
+      });
+    } catch (error) {
+      dispatch({
+        type:
+          "GET_NOTIFICATIONS_FAILURE",
+        payload: error.message,
+      });
+    }
+  };
+
+export const addNotification =
+  (notification) => ({
+    type: "ADD_NOTIFICATION",
+    payload: notification,
+  });
+
+export const markNotificationRead =
+  (id) => async (dispatch) => {
+    try {
+      await api.put(
+        `/notifications/${id}/read`
+      );
+
+      dispatch({
+        type:
+          "MARK_NOTIFICATION_READ",
+        payload: id,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+export const markAllNotificationsRead =
+  () => async (dispatch) => {
+    try {
+      await api.put(
+        "/notifications/read-all"
+      );
+
+      dispatch({
+        type:
+          "MARK_ALL_NOTIFICATIONS_READ",
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+export const deleteNotification =
+  (id) => async (dispatch) => {
+    try {
+      await api.delete(
+        `/notifications/${id}`
+      );
+
+      dispatch({
+        type:
+          "DELETE_NOTIFICATION",
+        payload: id,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };

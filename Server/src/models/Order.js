@@ -1,23 +1,47 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const Order = sequelize.define("Order", {
-    status: {
-      type: DataTypes.STRING,
-      defaultValue: "pending",
-    },
+  const Order = sequelize.define(
+    "Order",
+    {
+      status: {
+        type: DataTypes.ENUM(
+          "pending",
+          "approved",
+          "rejected",
+          "cancelled",
+          "expired"
+        ),
 
-    total: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-      defaultValue: 0,
-    },
+        allowNull: false,
 
-    paymentId: {
-      type: DataTypes.STRING,
-      allowNull: true,
+        defaultValue: "pending",
+      },
+
+      total: {
+        type: DataTypes.FLOAT,
+
+        allowNull: false,
+
+        defaultValue: 0,
+      },
+
+      paymentId: {
+        type: DataTypes.STRING,
+
+        allowNull: true,
+      },
+
+      expiresAt: {
+        type: DataTypes.DATE,
+
+        allowNull: false,
+      },
     },
-  });
+    {
+      paranoid: true,
+    }
+  );
 
   Order.associate = (models) => {
     Order.hasMany(models.OrderItem, {

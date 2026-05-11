@@ -1,46 +1,82 @@
 const express = require("express");
 const { createServer } = require("node:http");
-
-const { User, Notifications, Tienda, Compra } = require("./src/DB_config");
+const { Server } = require("socket.io");
 
 const router = require("./src/routes/routes");
 
+const cron = require("node-cron");
 
+const clearAbandonedOrders = require(
+  "./jobs/clearAbandonedOrders"
+);
 
 const app = express();
+
 const httpServer = createServer(app);
 
+const io = new Server(httpServer, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+app.set("io", io);
 
 const morgan = require("morgan");
 const cors = require("cors");
 
 app.use(morgan("dev"));
+
 app.use(express.json());
-app.use(cors());
 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+    ],
+    credentials: true,
+  })
+);
 
-app.use(function (req, res, next) {
+io.on("connection", (socket) => {
+  console.log(
+    "🔌 Usuario conectado:",
+    socket.id
+  );
 
-  const allowedOrigins = [
-    "http://localhost:5173",
-    "http://localhost:3001",
-  ]; 
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+  socket.on("join_admin", () => {
+    socket.join("admins");
+
+    console.log(
+      "👑 Admin conectado"
     );
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept"
+  });
+
+  socket.on("join_user", (userId) => {
+    socket.join(`user_${userId}`);
+
+    console.log(
+      `👤 User conectado ${userId}`
     );
-  }
-  next();
+  });
+
+  socket.on("disconnect", () => {
+    console.log(
+      "❌ Usuario desconectado"
+    );
+  });
+});
+
+cron.schedule("*/5 * * * *", () => {
+  clearAbandonedOrders(io);
 });
 
 app.use(router);
 
-module.exports = httpServer;
+module.exports = {
+  httpServer,
+};

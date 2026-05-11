@@ -22,10 +22,28 @@ const createProduct = async (req, res) => {
       status: "draft", // siempre arranca como borrador
     });
 
+    if (!isProductComplete(product)) {
+      await sendNotification({
+        io,
+        roleTarget: "admin",
+        title: "Producto creado",
+        message: `${product.title} fue agregado como borrador`,
+        type: "info",
+      });
+    }
+
     if (isProductComplete(product)) {
       product.status = "ready";
       await product.save();
     }
+
+    await sendNotification({
+      io,
+      roleTarget: "admin",
+      title: "Producto actualizado",
+      message: `${product.title} fue actualizado y publicado`,
+      type: "info",
+    });
 
     res.status(201).json({
       message: isProductComplete(product)
@@ -160,6 +178,14 @@ const suspendProduct = async (req, res) => {
     product.isActive = false;
     await product.save();
 
+    await sendNotification({
+      io,
+      roleTarget: "admin",
+      title: "Producto pausado",
+      message: `${product.title} fue pausado`,
+      type: "warning",
+    });
+
     res.json({ message: "Product suspended" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -176,6 +202,14 @@ const activateProduct = async (req, res) => {
     product.isActive = true;
     await product.save();
 
+    await sendNotification({
+      io,
+      roleTarget: "admin",
+      title: "Producto reactivado",
+      message: `${product.title} fue reactivado`,
+      type: "info",
+    });
+
     res.json({ message: "Product activated" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -191,5 +225,5 @@ module.exports = {
   suspendProduct,
   activateProduct,
   publishProduct,
-  getAdminProducts
+  getAdminProducts,
 };

@@ -27,6 +27,14 @@ const register = async (req, res) => {
       password: hashed,
     });
 
+    await sendNotification({
+      io,
+      roleTarget: "admin",
+      title: "Nuevo usuario",
+      message: `${user.name} se registró`,
+      type: "info",
+    });
+
     res.status(201).json({
       id: user.id,
       email: user.email,
@@ -43,10 +51,14 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(404).json({ error: "El email ingresado no se encuentra registrado" });
+    if (!user)
+      return res
+        .status(404)
+        .json({ error: "El email ingresado no se encuentra registrado" });
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ error: "Credenciales inválidas" });
+    if (!valid)
+      return res.status(401).json({ error: "Credenciales inválidas" });
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
