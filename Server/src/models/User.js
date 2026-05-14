@@ -64,11 +64,14 @@ module.exports = (sequelize) => {
         defaultValue: false,
       },
 
-      avatarUrl: DataTypes.STRING,
+      avatar: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       paranoid: true,
       timestamps: true,
-    }
+    },
   );
 };

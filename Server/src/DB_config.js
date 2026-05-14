@@ -51,6 +51,7 @@ const {
   User,
   Order,
   OrderItem,
+  Notification,
 } = sequelize.models;
 
 User.hasMany(Notification);

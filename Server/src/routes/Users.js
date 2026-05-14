@@ -2,6 +2,7 @@
 const { Router } = require("express");
 const router = Router();
 
+const upload = require("../Middleware/uploadCloudinary");
 const auth = require("../Middleware/Authorization");
 const isAdmin = require("../Middleware/isAdmin");
 
@@ -15,7 +16,7 @@ const {
 } = require("../controllers/Users");
 
 // AUTH
-router.post("/register", register);
+router.post("/register", upload.single("avatar"), register);
 router.post("/login", login);
 
 // ADMIN
