@@ -1,0 +1,177 @@
+.wrapper {
+  position: relative;
+}
+
+.bellButton {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bellButton:hover {
+  opacity: 0.8;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 5px;
+
+  border-radius: 50px;
+
+  background: red;
+  color: white;
+
+  font-size: 11px;
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown {
+  position: absolute;
+
+  top: 45px;
+  right: 0;
+
+  width: 360px;
+  max-height: 500px;
+
+  overflow: hidden;
+
+  background: #111;
+
+  border: 1px solid #222;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.4);
+
+  z-index: 999;
+}
+
+.dropdownHeader {
+  padding: 15px;
+
+  border-bottom: 1px solid #222;
+
+  color: white;
+}
+
+.notificationList {
+  max-height: 430px;
+
+  overflow-y: auto;
+}
+
+.notificationCard {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 14px;
+
+  border-bottom: 1px solid #1d1d1d;
+
+  transition: 0.2s;
+
+  color: white;
+}
+
+.notificationCard:hover {
+  background: #181818;
+}
+
+.unread {
+  background:
+    rgba(63,149,219,0.12);
+}
+
+.content {
+  flex: 1;
+
+  cursor: pointer;
+}
+
+.top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 6px;
+}
+
+.top h4 {
+  margin: 0;
+
+  font-size: 14px;
+}
+
+.top span {
+  font-size: 11px;
+
+  color: #3f95db;
+
+  text-transform: uppercase;
+}
+
+.content p {
+  margin: 0 0 6px;
+
+  font-size: 13px;
+
+  color: #ccc;
+}
+
+.content small {
+  color: #666;
+
+  font-size: 11px;
+}
+
+.actions {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.actions button {
+  border: none;
+
+  background: transparent;
+
+  color: #aaa;
+
+  cursor: pointer;
+}
+
+.actions button:hover {
+  color: white;
+}
+
+.empty {
+  padding: 30px;
+
+  text-align: center;
+
+  color: #777;
+}

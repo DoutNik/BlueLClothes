@@ -1,73 +1,28 @@
-const { Router } = require("express");
-
-const {
-  Notification,
-} = require("../DB_config");
-
-const router = Router();
-
-router.get("/", async (req, res) => {
-  try {
-    const notifications =
-      await Notification.findAll({
-        order: [["createdAt", "DESC"]],
-      });
-
-    res.json(notifications);
-  } catch (error) {
-    console.log(error);
-
-    res.status(500).json({
-      error:
-        "Error obteniendo notificaciones",
-    });
-  }
-});
-
-router.put(
-  "/:id/read",
-  async (req, res) => {
-    try {
-      const notification =
-        await Notification.findByPk(
-          req.params.id
-        );
-
-      if (!notification) {
-        return res.status(404).json({
-          error:
-            "Notificación no encontrada",
-        });
-      }
-
-      notification.read = true;
-
-      await notification.save();
-
-      res.json(notification);
-    } catch (error) {
-      console.log(error);
-
-      res.status(500).json({
-        error:
-          "Error actualizando notificación",
-      });
-    }
-  }
-);
+const router = require("express").Router();
+const { Notification } = require("../DB_config");
+const auth = require("../middleware/Authorization");
 
 router.put(
   "/read-all",
+  auth,
   async (req, res) => {
     try {
+      let where = {
+        read: false,
+      };
+
+      if (req.user.role === "admin") {
+        where.roleTarget = "admin";
+      } else {
+        where.userId = req.user.id;
+      }
+
       await Notification.update(
         {
           read: true,
         },
         {
-          where: {
-            read: false,
-          },
+          where,
         }
       );
 
@@ -82,6 +37,7 @@ router.put(
 
 router.delete(
   "/:id",
+  auth,
   async (req, res) => {
     try {
       const notification =

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import styles from "./Navbar.module.css";
 import logo1 from "../../assets/logo2.png";
+import NotificationBell from "../Notifications/Notifications";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -69,6 +70,8 @@ const Navbar = () => {
                     <span className={styles.badge}>{totalItems}</span>
                   )}
                 </Link>
+
+                <NotificationBell />
 
                 <button className={styles.logoutBtn} onClick={handleLogout}>
                   Logout

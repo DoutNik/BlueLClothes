@@ -1,5 +1,7 @@
 // controllers/productController.js
-const { Product } = require("../DB_config");
+const { Product, User } = require("../DB_config");
+const sendNotification = require("../utils/sendNotification");
+
 
 const isProductComplete = (product) => {
   return (
@@ -23,13 +25,28 @@ const createProduct = async (req, res) => {
     });
 
     if (!isProductComplete(product)) {
-      await sendNotification({
-        io,
-        roleTarget: "admin",
-        title: "Producto creado",
-        message: `${product.title} fue agregado como borrador`,
-        type: "info",
-      });
+// 🔥 NOTIFICACIÓN ADMINS
+await sendNotification({
+  io: req.io,
+
+  roleTarget: "admin",
+
+  title: "Nuevo producto en borrador",
+
+  message: `${product.name} fue creado por ${req.user.name} y necesita ser completado para su publicación`,
+
+  type: "info",
+
+  category: "products",
+
+  priority: "medium",
+
+  entityType: "product",
+
+  entityId: product.id,
+
+  link: `/product/${product.id}`,
+});
     }
 
     if (isProductComplete(product)) {
@@ -37,13 +54,28 @@ const createProduct = async (req, res) => {
       await product.save();
     }
 
-    await sendNotification({
-      io,
-      roleTarget: "admin",
-      title: "Producto actualizado",
-      message: `${product.title} fue actualizado y publicado`,
-      type: "info",
-    });
+// 🔥 NOTIFICACIÓN ADMINS
+await sendNotification({
+  io: req.io,
+
+  roleTarget: "admin",
+
+  title: "Nuevo producto publicado",
+
+  message: `${product.name} fue creado y publicado por ${req.user.name}`,
+
+  type: "info",
+
+  category: "products",
+
+  priority: "medium",
+
+  entityType: "product",
+
+  entityId: product.id,
+
+  link: `/product/${product.id}`,
+});
 
     res.status(201).json({
       message: isProductComplete(product)
@@ -55,6 +87,8 @@ const createProduct = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+
 
 const publishProduct = async (req, res) => {
   try {
