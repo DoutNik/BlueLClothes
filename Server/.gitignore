@@ -1,1 +1,3 @@
-Server/src/firebase-service-account.json
+src/firebase-service-account.json
+.env
+node_modules
