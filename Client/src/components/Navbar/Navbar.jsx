@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import styles from "./Navbar.module.css";
 import logo1 from "../../assets/logo2.png";
 import NotificationBell from "../Notifications/Notifications";
+import socket from "../../socket";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -26,6 +27,20 @@ const Navbar = () => {
   };
 
   const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    socket.emit("join_user");
+
+    console.log("👤 unido a users");
+
+    if (user.role === "admin") {
+      socket.emit("join_admin");
+
+      console.log("🛡 unido a admins");
+    }
+  }, [user]);
 
   return (
     <>

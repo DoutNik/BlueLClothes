@@ -77,6 +77,23 @@ await sendNotification({
   link: `/product/${product.id}`,
 });
 
+await sendNotification({
+  io: req.io,
+
+  roleTarget: "users",
+
+  title: "Nuevo producto",
+
+  message: `${product.name} ya disponible`,
+
+  type: "info",
+
+  category: "products",
+
+  link: `/product/${product.id}`,
+});
+
+
     res.status(201).json({
       message: isProductComplete(product)
         ? "Producto creado y listo para publicar"
@@ -213,7 +230,7 @@ const suspendProduct = async (req, res) => {
     await product.save();
 
     await sendNotification({
-      io,
+      io: req.io,
       roleTarget: "admin",
       title: "Producto pausado",
       message: `${product.title} fue pausado`,
