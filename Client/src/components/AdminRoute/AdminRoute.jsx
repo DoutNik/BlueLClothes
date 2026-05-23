@@ -1,6 +1,8 @@
 import { Navigate } from "react-router-dom";
 
 const AdminRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+
   const storedUser = localStorage.getItem("user");
 
   const user =
@@ -8,17 +10,14 @@ const AdminRoute = ({ children }) => {
       ? JSON.parse(storedUser)
       : null;
 
-  // no logueado
-  if (!user) {
-    return <Navigate to="/login" />;
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
   }
 
-  // logueado pero no admin
   if (user.role !== "admin") {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
-  // autorizado
   return children;
 };
 

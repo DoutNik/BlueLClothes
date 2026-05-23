@@ -32,13 +32,14 @@ const NotificationBell = () => {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   // GET INITIAL NOTIFICATIONS
-  useEffect(() => {
-    dispatch(getNotifications());
-  }, [dispatch]);
+useEffect(() => {
+  console.log("NotificationBell mounted");
+
+  dispatch(getNotifications());
+}, [dispatch]);
 
   // SOCKETS
   useEffect(() => {
-    socket.emit("join_admin");
 
     socket.on("new_notification", (notification) => {
       dispatch(addNotification(notification));

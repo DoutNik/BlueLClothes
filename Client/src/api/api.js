@@ -23,13 +23,13 @@ api.interceptors.response.use(
       console.log("Token expirado o inválido");
 
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
 
-      // 🔥 redirigir al login
-      window.location.href = "/login";
+      window.location.replace("/login");
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

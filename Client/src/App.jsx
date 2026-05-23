@@ -18,11 +18,11 @@ import Success from "./views/PayResults/Success/Success";
 import PaymentPending from "./views/PayResults/Pending/Pending";
 import PaymentFailed from "./views/PayResults/Failed/Failed";
 import Footer from "./components/Footer/Footer";
+import { SocketProvider } from "./context/SocketContext";
 
 import Cart from "./views/Cart/Cart";
 
 import "./App.css";
-
 
 const App = () => {
   return (
@@ -32,12 +32,13 @@ const App = () => {
         v7_startTransition: true,
       }}
     >
-      <div className="app-container">
-        <header>
-          <Navbar />
-        </header>
-        <Routes>
-          <Route path="/" element={<Home />} />
+      <SocketProvider>
+        <div className="app-container">
+          <header>
+            <Navbar />
+          </header>
+          <Routes>
+            <Route path="/" element={<Home />} />
           <Route path="/glasses" element={<Glasses />} />
           <Route path="/clothes" element={<Clothes />} />
           <Route path="/product-detail/:id" element={<ProductDetail />} />
@@ -92,6 +93,7 @@ const App = () => {
         </Routes>
         <Footer />
       </div>
+        </SocketProvider>
     </Router>
   );
 };

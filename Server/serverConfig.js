@@ -22,6 +22,13 @@ const io = new Server(httpServer, {
 
 app.set("io", io);
 
+app.use((req, res, next) => {
+
+  req.io = io;
+
+  next();
+});
+
 const morgan = require("morgan");
 const cors = require("cors");
 
@@ -43,6 +50,12 @@ io.on("connection", (socket) => {
     socket.join("admins");
 
     console.log("👑 Admin conectado");
+  });
+
+  socket.on("join_users", () => {
+    socket.join("users");
+
+    console.log("🌎 Usuario unido a room users");
   });
 
   socket.on("join_user", (userId) => {
