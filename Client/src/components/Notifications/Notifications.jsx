@@ -38,8 +38,6 @@ useEffect(() => {
   dispatch(getNotifications());
 }, [dispatch]);
 
-console.log(notifications);
-
 
   // SOCKETS
   useEffect(() => {

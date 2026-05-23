@@ -33,7 +33,7 @@ await sendNotification({
 
   title: "Nuevo producto en borrador",
 
-  message: `${product.name} de ${product.brand} fue creado por ${req.user.firstName} ${req.user.lastName} y necesita ser completado para su publicación`,
+  message: `${product.category} ${product.title} de ${product.brand} fue creado por ${req.user.firstName} ${req.user.lastName} y necesita ser completado para su publicación`,
 
   type: "info",
 
@@ -45,7 +45,7 @@ await sendNotification({
 
   entityId: product.id,
 
-  link: `/product/${product.id}`,
+  link: `/product-detail/${product.id}`,
 });
     }
 
@@ -62,7 +62,7 @@ await sendNotification({
 
   title: "Nuevo producto publicado",
 
-  message: `${product.category} ${product.name} de ${product.brand} fue creado y publicado por ${req.user.firstName} ${req.user.lastName}`,
+  message: `${product.category} ${product.title} de ${product.brand} fue creado y publicado por ${req.user.firstName} ${req.user.lastName}`,
 
   type: "info",
 
@@ -74,7 +74,7 @@ await sendNotification({
 
   entityId: product.id,
 
-  link: `/product/${product.id}`,
+  link: `/product-detail/${product.id}`,
 });
 
 await sendNotification({
@@ -84,13 +84,13 @@ await sendNotification({
 
   title: "Nuevo producto",
 
-  message: `${product.category} ${product.name} de ${product.brand} ya disponible`,
+  message: `${product.category} ${product.title} de ${product.brand} ya disponible`,
 
   type: "info",
 
   category: "products",
 
-  link: `/product/${product.id}`,
+  link: `/product-detail/${product.id}`,
 });
 
 
