@@ -18,7 +18,7 @@
   max-width: 700px;
   width: 90%;
   transition: all 0.5s ease; /* Transiciones suaves */
-  z-index: 1000;
+  z-index: 999;
 }
 
 .containerScrolling {
