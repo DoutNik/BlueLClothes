@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../../../api/api";
 import styles from "./ProductManagement.module.css";
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+
+  const readyRef = useRef(null);
+  const draftRef = useRef(null);
+  const publishedRef = useRef(null);
 
   useEffect(() => {
     fetchProducts();
@@ -21,7 +25,7 @@ const ProductManagement = () => {
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm(
-      "¿Seguro que quieres eliminar este producto?"
+      "¿Seguro que quieres eliminar este producto?",
     );
 
     if (!confirmDelete) return;
@@ -29,7 +33,7 @@ const ProductManagement = () => {
     try {
       await api.delete(`/products/${id}`);
 
-      setProducts(products.filter((p) => p.id !== id));
+      setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
       console.error(error);
     }
@@ -45,9 +49,7 @@ const ProductManagement = () => {
       await api.put(`/products/${product.id}`, updated);
 
       setProducts((prev) =>
-        prev.map((p) =>
-          p.id === product.id ? updated : p
-        )
+        prev.map((p) => (p.id === product.id ? updated : p)),
       );
     } catch (error) {
       console.error(error);
@@ -56,17 +58,10 @@ const ProductManagement = () => {
 
   const handleSave = async () => {
     try {
-      await api.put(
-        `/products/${editingProduct.id}`,
-        editingProduct
-      );
+      await api.put(`/products/${editingProduct.id}`, editingProduct);
 
       setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id
-            ? editingProduct
-            : p
-        )
+        prev.map((p) => (p.id === editingProduct.id ? editingProduct : p)),
       );
 
       setEditingProduct(null);
@@ -75,84 +70,151 @@ const ProductManagement = () => {
     }
   };
 
+  const handlePublish = async (product) => {
+    try {
+      const updated = {
+        ...product,
+        status: "published",
+        isActive: true,
+      };
+
+      await api.put(`/products/${product.id}`, updated);
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? updated : p)),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const scrollToSection = (ref) => {
+    ref.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  const readyProducts = products.filter((p) => p.status === "ready");
+
+  const draftProducts = products.filter((p) => p.status === "draft");
+
+  const publishedProducts = products.filter((p) => p.status === "published");
+
+  const renderProduct = (product) => (
+    <div className={styles.card} key={product.id}>
+      <img src={product.imageUrl?.[0]} alt={product.title} />
+
+      <div className={styles.info}>
+        <h3>{product.title}</h3>
+
+        <p>{product.brand}</p>
+
+        <span className={styles.price}>${product.price}</span>
+
+        <div className={styles.statusRow}>
+          <span className={product.isActive ? styles.active : styles.paused}>
+            {product.isActive ? "Activo" : "Pausado"}
+          </span>
+
+          <span>Stock: {product.stock}</span>
+        </div>
+
+        <div className={styles.actions}>
+          {product.status === "ready" && (
+            <button
+              className={styles.publishBtn}
+              onClick={() => handlePublish(product)}
+            >
+              Publicar
+            </button>
+          )}
+
+          <button
+            className={styles.editBtn}
+            onClick={() => setEditingProduct(product)}
+          >
+            Editar
+          </button>
+
+          <button
+            className={styles.pauseBtn}
+            onClick={() => handleToggleStatus(product)}
+          >
+            {product.isActive ? "Pausar" : "Activar"}
+          </button>
+
+          <button
+            className={styles.deleteBtn}
+            onClick={() => handleDelete(product.id)}
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>
-        Gestión de Productos
-      </h1>
+      <h1 className={styles.title}>Gestión de Productos</h1>
 
-      <div className={styles.grid}>
-        {products.map((product) => (
-          <div
-            className={styles.card}
-            key={product.id}
-          >
-            <img
-              src={product.imageUrl?.[0]}
-              alt={product.title}
-            />
+      {/* NAVBAR SECUNDARIA */}
+      <div className={styles.subNavbar}>
+        <button onClick={() => scrollToSection(readyRef)}>
+          ⏳ Esperando validación
+          <span>{readyProducts.length}</span>
+        </button>
 
-            <div className={styles.info}>
-              <h3>{product.title}</h3>
+        <button onClick={() => scrollToSection(draftRef)}>
+          📝 Borradores
+          <span>{draftProducts.length}</span>
+        </button>
 
-              <p>{product.brand}</p>
-
-              <span className={styles.price}>
-                ${product.price}
-              </span>
-
-              <div className={styles.statusRow}>
-                <span
-                  className={
-                    product.isActive
-                      ? styles.active
-                      : styles.paused
-                  }
-                >
-                  {product.isActive
-                    ? "Activo"
-                    : "Pausado"}
-                </span>
-
-                <span>
-                  Stock: {product.stock}
-                </span>
-              </div>
-
-              <div className={styles.actions}>
-                <button
-                  className={styles.editBtn}
-                  onClick={() =>
-                    setEditingProduct(product)
-                  }
-                >
-                  Editar
-                </button>
-
-                <button
-                  className={styles.pauseBtn}
-                  onClick={() =>
-                    handleToggleStatus(product)
-                  }
-                >
-                  {product.isActive
-                    ? "Pausar"
-                    : "Activar"}
-                </button>
-
-                <button
-                  className={styles.deleteBtn}
-                  onClick={() =>
-                    handleDelete(product.id)
-                  }
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+        <button onClick={() => scrollToSection(publishedRef)}>
+          🌎 Publicados
+          <span>{publishedProducts.length}</span>
+        </button>
       </div>
+
+      {/* READY */}
+      <section ref={readyRef} className={styles.section}>
+        <h2>⏳ Productos esperando validación</h2>
+
+        <div className={styles.grid}>
+          {readyProducts.length ? (
+            readyProducts.map(renderProduct)
+          ) : (
+            <p>No hay productos en validación.</p>
+          )}
+        </div>
+      </section>
+
+      {/* DRAFT */}
+      <section ref={draftRef} className={styles.section}>
+        <h2>📝 Borradores</h2>
+
+        <div className={styles.grid}>
+          {draftProducts.length ? (
+            draftProducts.map(renderProduct)
+          ) : (
+            <p>No hay borradores.</p>
+          )}
+        </div>
+      </section>
+
+      {/* PUBLISHED */}
+      <section ref={publishedRef} className={styles.section}>
+        <h2>🌎 Publicados</h2>
+
+        <div className={styles.grid}>
+          {publishedProducts.length ? (
+            publishedProducts.map(renderProduct)
+          ) : (
+            <p>No hay productos publicados.</p>
+          )}
+        </div>
+      </section>
 
       {/* MODAL EDIT */}
       {editingProduct && (
@@ -162,8 +224,8 @@ const ProductManagement = () => {
 
             <input
               type="text"
-              value={editingProduct.title}
               placeholder="Título"
+              value={editingProduct.title}
               onChange={(e) =>
                 setEditingProduct({
                   ...editingProduct,
@@ -174,8 +236,8 @@ const ProductManagement = () => {
 
             <input
               type="text"
-              value={editingProduct.brand}
               placeholder="Marca"
+              value={editingProduct.brand}
               onChange={(e) =>
                 setEditingProduct({
                   ...editingProduct,
@@ -186,8 +248,8 @@ const ProductManagement = () => {
 
             <input
               type="number"
-              value={editingProduct.price}
               placeholder="Precio"
+              value={editingProduct.price}
               onChange={(e) =>
                 setEditingProduct({
                   ...editingProduct,
@@ -198,8 +260,8 @@ const ProductManagement = () => {
 
             <input
               type="number"
-              value={editingProduct.stock}
               placeholder="Stock"
+              value={editingProduct.stock}
               onChange={(e) =>
                 setEditingProduct({
                   ...editingProduct,
@@ -209,8 +271,8 @@ const ProductManagement = () => {
             />
 
             <textarea
-              value={editingProduct.description}
               placeholder="Descripción"
+              value={editingProduct.description}
               onChange={(e) =>
                 setEditingProduct({
                   ...editingProduct,
@@ -220,18 +282,13 @@ const ProductManagement = () => {
             />
 
             <div className={styles.modalActions}>
-              <button
-                className={styles.saveBtn}
-                onClick={handleSave}
-              >
+              <button className={styles.saveBtn} onClick={handleSave}>
                 Guardar
               </button>
 
               <button
                 className={styles.cancelBtn}
-                onClick={() =>
-                  setEditingProduct(null)
-                }
+                onClick={() => setEditingProduct(null)}
               >
                 Cancelar
               </button>

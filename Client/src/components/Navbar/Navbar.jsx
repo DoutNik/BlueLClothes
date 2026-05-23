@@ -80,10 +80,24 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* MOBILE TOGGLER */}
-          <button className={styles.toggler} onClick={() => setMenuOpen(true)}>
-            ☰
-          </button>
+          {/* MOBILE ACTIONS */}
+          <div className={styles.mobileActions}>
+            <Link className={styles.cartLink} to="/cart">
+              🛒
+              {totalItems > 0 && (
+                <span className={styles.badge}>{totalItems}</span>
+              )}
+            </Link>
+
+            {user && <NotificationBell />}
+
+            <button
+              className={styles.toggler}
+              onClick={() => setMenuOpen(true)}
+            >
+              ☰
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -120,6 +134,7 @@ const Navbar = () => {
                   Hola {user.firstName || "User"}
                 </span>
 
+
                 {user.role === "admin" && (
                   <Link
                     to="/admin/dashboard"
@@ -129,10 +144,6 @@ const Navbar = () => {
                     ⚡ Admin Panel
                   </Link>
                 )}
-
-                <Link to="/cart" className={styles.link} onClick={closeMenu}>
-                  🛒 Carrito ({totalItems})
-                </Link>
 
                 <button className={styles.logoutBtn} onClick={handleLogout}>
                   Logout

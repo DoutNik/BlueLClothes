@@ -111,9 +111,19 @@
 
 .cartLink {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 22px;
   color: white;
   text-decoration: none;
-  font-size: 22px;
+}
+
+.mobileActions {
+  display: none;
+  align-items: center;
+  gap: 12px;
 }
 
 .badge {
@@ -157,7 +167,19 @@
     display: none;
   }
 
+  .mobileActions {
+    display: flex;
+  }
+
   .toggler {
     display: block;
+  }
+
+  .logo {
+    height: 34px;
+  }
+
+  .container {
+    padding: 0 12px;
   }
 }

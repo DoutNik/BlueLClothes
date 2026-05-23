@@ -175,24 +175,62 @@
 ---
 
 /* 📱 TABLET */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
----
+/* =========================
+   TABLETS
+========================= */
 
-/* 📱 MOBILE */
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .cardPro {
+    max-width: 220px;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .title {
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+  }
+
   .grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 
+  .cardWrapper {
+    width: 100%;
+  }
+
   .cardPro {
-    max-width: 180px;
-    aspect-ratio: 1 / 1;
+    max-width: 100%;
+    aspect-ratio: 1 / 1.15;
+  }
+
+  .price {
+    bottom: 8px;
+    right: 8px;
+
+    padding: 4px 8px;
+
+    font-size: 12px;
   }
 
   .content {
@@ -200,11 +238,12 @@
   }
 
   .content h5 {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .content p {
     font-size: 0.7rem;
+    -webkit-line-clamp: 3;
   }
 
   .button {
@@ -214,6 +253,75 @@
 
   .tag {
     font-size: 0.6rem;
-    right: -30px;
+    padding: 4px 40px;
+    right: -32px;
+  }
+}
+
+/* =========================
+   CELULARES PEQUEÑOS
+========================= */
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .grid {
+    gap: 10px;
+  }
+
+  .cardPro {
+    border-radius: 12px;
+  }
+
+  .price {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+
+  .content {
+    padding: 8px;
+  }
+
+  .content h5 {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .content p {
+    font-size: 0.65rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .button {
+    width: 100%;
+    font-size: 0.65rem;
+    padding: 5px;
+  }
+
+  .tag {
+    font-size: 0.55rem;
+    right: -34px;
+  }
+}
+
+/* =========================
+   TELÉFONOS MUY PEQUEÑOS
+========================= */
+
+@media (max-width: 360px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cardPro {
+    max-width: 260px;
+    margin: 0 auto;
   }
 }

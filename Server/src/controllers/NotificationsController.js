@@ -9,20 +9,14 @@ const getNotifications = async (req, res) => {
     // ADMIN
     if (req.user.role === "admin") {
       where = {
-        [Op.or]: [
-          { roleTarget: "admin" },
-          { userId: req.user.id },
-        ],
+        [Op.or]: [{ roleTarget: "admin" }, { userId: req.user.id }],
       };
     }
 
     // USER
     else {
       where = {
-        [Op.or]: [
-          { userId: req.user.id },
-          { roleTarget: "users" },
-        ],
+        [Op.or]: [{ userId: req.user.id }, { roleTarget: "users" }],
       };
     }
 
@@ -42,15 +36,9 @@ const getNotifications = async (req, res) => {
 };
 
 // MARK ONE AS READ
-const markNotificationRead = async (
-  req,
-  res
-) => {
+const markNotificationRead = async (req, res) => {
   try {
-    const notification =
-      await Notification.findByPk(
-        req.params.id
-      );
+    const notification = await Notification.findByPk(req.params.id);
 
     if (!notification) {
       return res.status(404).json({
@@ -59,14 +47,11 @@ const markNotificationRead = async (
     }
 
     // VALIDACION SEGURIDAD
-    const isAdminNotification =
-      notification.roleTarget === "admin";
+    const isAdminNotification = notification.roleTarget === "admin";
 
-    const isUserNotification =
-      notification.userId === req.user.id;
+    const isUserNotification = notification.userId === req.user.id;
 
-    const isGlobalUsersNotification =
-      notification.roleTarget === "users";
+    const isGlobalUsersNotification = notification.roleTarget === "users";
 
     if (
       req.user.role !== "admin" &&
@@ -97,58 +82,45 @@ const markNotificationRead = async (
 };
 
 // MARK ALL AS READ
-const markAllNotificationsRead =
-  async (req, res) => {
-    try {
-      let where = {
+const markAllNotificationsRead = async (req, res) => {
+  try {
+    let where = {
+      read: false,
+    };
+
+    if (req.user.role === "admin") {
+      where = {
         read: false,
+        [Op.or]: [{ roleTarget: "admin" }, { userId: req.user.id }],
       };
-
-      if (req.user.role === "admin") {
-        where = {
-          read: false,
-          [Op.or]: [
-            { roleTarget: "admin" },
-            { userId: req.user.id },
-          ],
-        };
-      } else {
-        where = {
-          read: false,
-          [Op.or]: [
-            { userId: req.user.id },
-            { roleTarget: "users" },
-          ],
-        };
-      }
-
-      await Notification.update(
-        {
-          read: true,
-        },
-        {
-          where,
-        }
-      );
-
-      res.sendStatus(200);
-    } catch (error) {
-      console.log(error);
-
-      res.sendStatus(500);
+    } else {
+      where = {
+        read: false,
+        [Op.or]: [{ userId: req.user.id }, { roleTarget: "users" }],
+      };
     }
-  };
+
+    await Notification.update(
+      {
+        read: true,
+      },
+      {
+        where,
+      },
+    );
+
+    res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+
+    res.sendStatus(500);
+  }
+};
 
 // DELETE
-const deleteNotification = async (
-  req,
-  res
-) => {
+const deleteNotification = async (req, res) => {
   try {
-    const notification =
-      await Notification.findByPk(
-        req.params.id
-      );
+    const notification = await Notification.findByPk(req.params.id);
 
     if (!notification) {
       return res.status(404).json({
@@ -158,14 +130,10 @@ const deleteNotification = async (
 
     const canDelete =
       req.user.role === "admin"
-        ? notification.roleTarget ===
-            "admin" ||
-          notification.userId ===
-            req.user.id
-        : notification.userId ===
-            req.user.id ||
-          notification.roleTarget ===
-            "users";
+        ? notification.roleTarget === "admin" ||
+          notification.userId === req.user.id
+        : notification.userId === req.user.id ||
+          notification.roleTarget === "users";
 
     if (!canDelete) {
       return res.sendStatus(403);

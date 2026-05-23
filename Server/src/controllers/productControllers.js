@@ -22,7 +22,7 @@ const createProduct = async (req, res) => {
     const product = await Product.create({
       ...data,
       status: "draft", // siempre arranca como borrador
-    });
+    });    
 
     if (!isProductComplete(product)) {
 // 🔥 NOTIFICACIÓN ADMINS
@@ -33,7 +33,7 @@ await sendNotification({
 
   title: "Nuevo producto en borrador",
 
-  message: `${product.name} fue creado por ${req.user.name} y necesita ser completado para su publicación`,
+  message: `${product.name} de ${product.brand} fue creado por ${req.user.firstName} ${req.user.lastName} y necesita ser completado para su publicación`,
 
   type: "info",
 
@@ -62,7 +62,7 @@ await sendNotification({
 
   title: "Nuevo producto publicado",
 
-  message: `${product.name} fue creado y publicado por ${req.user.name}`,
+  message: `${product.category} ${product.name} de ${product.brand} fue creado y publicado por ${req.user.firstName} ${req.user.lastName}`,
 
   type: "info",
 
@@ -84,7 +84,7 @@ await sendNotification({
 
   title: "Nuevo producto",
 
-  message: `${product.name} ya disponible`,
+  message: `${product.category} ${product.name} de ${product.brand} ya disponible`,
 
   type: "info",
 

@@ -1,0 +1,118 @@
+.container {
+  position: relative;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(circle at 20% 20%, #ff00ff33, transparent 30%),
+    radial-gradient(circle at 80% 30%, #00ffff33, transparent 30%),
+    radial-gradient(circle at 50% 80%, #ff008033, transparent 30%),
+    #050505;
+}
+
+.lights {
+  position: absolute;
+  inset: 0;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 40px,
+      rgba(255,255,255,0.03) 41px,
+      transparent 42px
+    );
+
+  animation: moveLights 8s linear infinite;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+
+  text-align: center;
+
+  padding: 40px;
+
+  border-radius: 20px;
+
+  background: rgba(0,0,0,0.4);
+
+  backdrop-filter: blur(10px);
+}
+
+.code {
+  margin: 0;
+
+  font-size: 8rem;
+
+  color: #00ffff;
+
+  text-shadow:
+    0 0 10px #00ffff,
+    0 0 30px #00ffff,
+    0 0 60px #00ffff;
+}
+
+.title {
+  color: white;
+
+  font-size: 2rem;
+
+  margin-top: 10px;
+}
+
+.text {
+  color: #ccc;
+
+  max-width: 500px;
+
+  margin: 20px auto;
+
+  line-height: 1.6;
+}
+
+.button {
+  display: inline-block;
+
+  margin-top: 15px;
+
+  padding: 12px 25px;
+
+  border-radius: 10px;
+
+  text-decoration: none;
+
+  color: white;
+
+  background: linear-gradient(
+    90deg,
+    #ff00ff,
+    #00ffff
+  );
+
+  transition: 0.3s;
+}
+
+.button:hover {
+  transform: scale(1.05);
+
+  box-shadow:
+    0 0 20px #ff00ff,
+    0 0 40px #00ffff;
+}
+
+@keyframes moveLights {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100px);
+  }
+}
