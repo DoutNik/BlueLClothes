@@ -112,14 +112,29 @@ const ProductDetail = () => {
               {isInCart ? "Producto en carrito" : "Agregar al carrito"}
             </button>
 
-            {isInCart && (
-              <button
-                className={styles.viewCartBtn}
-                onClick={() => navigate("/cart")}
-              >
-                Ver carrito
-              </button>
-            )}
+            <div className={styles.secondaryActions}>
+              {isInCart ? (
+                <>
+                  <button
+                    className={styles.backBtn}
+                    onClick={() => navigate(-1)}
+                  >
+                    Volver
+                  </button>
+                  
+                  <button
+                    className={styles.viewCartBtn}
+                    onClick={() => navigate("/cart")}
+                  >
+                    Ver carrito
+                  </button>
+                </>
+              ) : (
+                <button className={styles.backBtn} onClick={() => navigate(-1)}>
+                  Volver
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

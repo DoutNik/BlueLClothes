@@ -108,6 +108,14 @@
   gap: 10px;
   margin-top: 10px;
 }
+.secondaryActions {
+  display: flex;
+  gap: 12px;
+}
+
+.secondaryActions button {
+  flex: 1;
+}
 
 .buyBtn,
 .inCartBtn {
@@ -138,8 +146,25 @@
   cursor: default;
 }
 
+.backBtn {
+  background: transparent;
+  border: 1px solid #3f95db;
+  color: #3f95db;
+
+  padding: 12px;
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.backBtn:hover {
+  background: #3f95db;
+  color: white;
+}
+
 .viewCartBtn {
-  align-self: center;
   background: #00ffae;
   border-radius: 7px;
   border: none;
