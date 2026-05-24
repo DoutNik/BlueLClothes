@@ -122,33 +122,48 @@
 }
 
 .footer {
-  margin-top: 34px;
-  padding: 24px;
-  border-radius: 18px;
-  background: white;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 30px;
 }
 
 .footer h2 {
-  font-size: 1.5rem;
-  color: #111;
-  margin-bottom: 18px;
+  margin: 0;
 }
 
-.footer button {
-  border: none;
-  background: #111;
-  color: white;
-  padding: 14px 22px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s ease;
+.footerActions {
+  margin-left: auto;
+
+  display: flex;
+  gap: 12px;
 }
 
-.footer button:hover {
+.backBtn {
   background: #222;
-  transform: translateY(-1px);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.buyBtn {
+  background: #00c853;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.clearBtn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .empty {
@@ -162,6 +177,118 @@
   font-size: 1.8rem;
   color: #777;
   font-weight: 500;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+}
+
+.modal {
+  width: 90%;
+  max-width: 500px;
+
+  padding: 30px;
+
+  border-radius: 20px;
+
+  background: linear-gradient(
+    145deg,
+    #090909,
+    #161616
+  );
+
+  border: 1px solid rgba(255, 0, 200, 0.4);
+
+  text-align: center;
+
+  box-shadow:
+    0 0 30px rgba(255, 0, 200, 0.35),
+    0 0 60px rgba(63, 149, 219, 0.15);
+}
+
+.neonIcon {
+  font-size: 50px;
+  margin-bottom: 15px;
+
+  text-shadow:
+    0 0 10px #ff00c8,
+    0 0 20px #ff00c8;
+}
+
+.modal h2 {
+  color: #ff00c8;
+  margin-bottom: 15px;
+}
+
+.modal p {
+  color: #ddd;
+  line-height: 1.6;
+}
+
+.warning {
+  margin-top: 15px;
+  color: #3f95db;
+  font-weight: bold;
+}
+
+.modalActions {
+  margin-top: 25px;
+
+  display: flex;
+  gap: 12px;
+}
+
+.modalActions button {
+  flex: 1;
+
+  border: none;
+
+  padding: 12px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+  transition: 0.25s;
+}
+
+.cancelBtn {
+  background: #222;
+  color: white;
+}
+
+.cancelBtn:hover {
+  background: #333;
+}
+
+.confirmBtn {
+  background: linear-gradient(
+    90deg,
+    #ff00c8,
+    #3f95db
+  );
+
+  color: white;
+}
+
+.confirmBtn:hover {
+  transform: scale(1.03);
+
+  box-shadow:
+    0 0 15px rgba(255, 0, 200, 0.5),
+    0 0 25px rgba(63, 149, 219, 0.4);
 }
 
 /* TABLET */
@@ -187,6 +314,17 @@
   .footer h2 {
     font-size: 1.25rem;
   }
+
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .footerActions {
+    margin-left: 0;
+    flex-direction: column;
+  }
+
 }
 
 /* MOBILE */

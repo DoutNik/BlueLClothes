@@ -1,4 +1,6 @@
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import {
   removeFromCart,
   increaseQty,
@@ -11,6 +13,9 @@ import styles from "./Cart.module.css";
 
 const Cart = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const [showClearModal, setShowClearModal] = useState(false);
 
   const items = useSelector((state) => state.cart.items);
 
@@ -81,10 +86,57 @@ const Cart = () => {
         ))}
 
         <div className={styles.footer}>
+          <button className={styles.backBtn} onClick={() => navigate(-1)}>
+            ← Volver
+          </button>
+
           <h2>Total: ${total}</h2>
-          <button onClick={handleBuy}>Finalizar Compra</button>
-          <button onClick={() => dispatch(clearCart())}>Vaciar carrito</button>
+
+          <div className={styles.footerActions}>
+            <button className={styles.buyBtn} onClick={handleBuy}>
+              Finalizar Compra
+            </button>
+
+            <button
+              className={styles.clearBtn}
+              onClick={() => setShowClearModal(true)}
+            >
+              Vaciar carrito
+            </button>
+          </div>
         </div>
+        {showClearModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <div className={styles.neonIcon}>🛒</div>
+
+              <h2>Vaciar carrito</h2>
+
+              <p>Todos los productos serán eliminados del carrito.</p>
+
+              <p className={styles.warning}>¿Deseas continuar?</p>
+
+              <div className={styles.modalActions}>
+                <button
+                  className={styles.confirmBtn}
+                  onClick={() => setShowClearModal(false)}
+                >
+                  Continuar compra
+                </button>
+
+                <button
+                  className={styles.cancelBtn}
+                  onClick={() => {
+                    dispatch(clearCart());
+                    setShowClearModal(false);
+                  }}
+                >
+                  Descartar productos
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -43,6 +43,12 @@ const Navbar = () => {
 
             {!user && (
               <>
+                <Link className={styles.cartLink} to="/cart">
+                  🛒
+                  {totalItems > 0 && (
+                    <span className={styles.badge}>{totalItems}</span>
+                  )}
+                </Link>
                 <Link className={styles.link} to="/login">
                   Login
                 </Link>
@@ -133,7 +139,6 @@ const Navbar = () => {
                 <span className={styles.user}>
                   Hola {user.firstName || "User"}
                 </span>
-
 
                 {user.role === "admin" && (
                   <Link
