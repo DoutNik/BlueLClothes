@@ -132,14 +132,27 @@
 /* Tag */
 .tag {
   position: absolute;
-  top: 12px;
-  right: -35px;
-  background: rgba(255, 255, 255, 0.9);
+
+  top: 18px;
+  right: -40px;
+
+  width: 160px;
+
+  padding: 10px 0;
+
+  background: rgba(255,255,255,.95);
   color: black;
-  padding: 5px 45px;
+
+  text-align: center;
+
   transform: rotate(45deg);
-  font-weight: 600;
-  font-size: 0.75rem;
+
+  font-size: 0.8rem;
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  z-index: 5;
 }
 
 /* Botón */
@@ -225,12 +238,12 @@
   }
 
   .price {
-    bottom: 8px;
-    right: 8px;
+    bottom: 16px;
+    right: 0px;
 
-    padding: 4px 8px;
+    padding: 8px 8px;
 
-    font-size: 12px;
+    font-size: 25px;
   }
 
   .content {
@@ -252,7 +265,7 @@
   }
 
   .tag {
-    font-size: 0.6rem;
+    font-size: 1rem;
     padding: 4px 40px;
     right: -32px;
   }

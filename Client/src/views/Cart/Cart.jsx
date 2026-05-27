@@ -61,7 +61,9 @@ const Cart = () => {
 
             <div className={styles.info}>
               <h3>{item.title}</h3>
-              <p>${item.price}</p>
+              <div className={styles.unitPrice}>
+                Precio unitario: ${item.price}
+              </div>
 
               <div className={styles.qty}>
                 <button onClick={() => dispatch(decreaseQty(item.id))}>
@@ -75,12 +77,25 @@ const Cart = () => {
                 </button>
               </div>
 
-              <button
-                className={styles.remove}
-                onClick={() => dispatch(removeFromCart(item.id))}
-              >
-                Eliminar
-              </button>
+              <div className={styles.subtotal}>
+                Subtotal: ${item.price * item.quantity}
+              </div>
+
+              <div className={styles.itemActions}>
+                <button
+                  className={styles.detailBtn}
+                  onClick={() => navigate(`/product-detail/${item.id}`)}
+                >
+                  Ver detalle
+                </button>
+
+                <button
+                  className={styles.remove}
+                  onClick={() => dispatch(removeFromCart(item.id))}
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         ))}
