@@ -64,6 +64,7 @@ const Cart = () => {
               <div className={styles.unitPrice}>
                 Precio unitario: ${item.price}
               </div>
+              <div className={styles.stock}>Stock disponible: {item.stock}</div>
 
               <div className={styles.qty}>
                 <button onClick={() => dispatch(decreaseQty(item.id))}>
@@ -72,7 +73,10 @@ const Cart = () => {
 
                 <span>{item.quantity}</span>
 
-                <button onClick={() => dispatch(increaseQty(item.id))}>
+                <button
+                  onClick={() => dispatch(increaseQty(item.id))}
+                  disabled={item.quantity >= item.stock}
+                >
                   +
                 </button>
               </div>

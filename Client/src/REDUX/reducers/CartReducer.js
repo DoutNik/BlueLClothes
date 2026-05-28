@@ -25,7 +25,7 @@ const cartReducer = (state = initialState, action) => {
         updatedItems = state.items.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + quantity }
-            : item
+            : item,
         );
       } else {
         updatedItems = [...state.items, { ...product, quantity }];
@@ -37,9 +37,7 @@ const cartReducer = (state = initialState, action) => {
     }
 
     case REMOVE_FROM_CART:
-      updatedItems = state.items.filter(
-        (item) => item.id !== action.payload
-      );
+      updatedItems = state.items.filter((item) => item.id !== action.payload);
 
       localStorage.setItem("cart", JSON.stringify(updatedItems));
 
@@ -49,7 +47,7 @@ const cartReducer = (state = initialState, action) => {
       updatedItems = state.items.map((item) =>
         item.id === action.payload
           ? { ...item, quantity: item.quantity + 1 }
-          : item
+          : item,
       );
 
       localStorage.setItem("cart", JSON.stringify(updatedItems));
@@ -57,17 +55,21 @@ const cartReducer = (state = initialState, action) => {
       return { ...state, items: updatedItems };
 
     case DECREASE_QTY:
-      updatedItems = state.items
-        .map((item) =>
-          item.id === action.payload
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        )
-        .filter((item) => item.quantity > 0);
+      updatedItems = state.items.map((item) =>
+        item.id === action.payload
+          ? {
+              ...item,
+              quantity: item.quantity > 1 ? item.quantity - 1 : 1,
+            }
+          : item,
+      );
 
       localStorage.setItem("cart", JSON.stringify(updatedItems));
 
-      return { ...state, items: updatedItems };
+      return {
+        ...state,
+        items: updatedItems,
+      };
 
     case CLEAR_CART:
       localStorage.removeItem("cart");

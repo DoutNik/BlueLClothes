@@ -88,6 +88,9 @@ const Navbar = () => {
 
           {/* MOBILE ACTIONS */}
           <div className={styles.mobileActions}>
+                        <Link className={styles.link} to="/">
+              Inicio
+            </Link>
             <Link className={styles.cartLink} to="/cart">
               🛒
               {totalItems > 0 && (
