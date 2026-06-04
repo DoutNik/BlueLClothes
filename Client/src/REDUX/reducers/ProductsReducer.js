@@ -2,6 +2,7 @@ import {
   GET_PRODUCTS_REQUEST,
   GET_PRODUCTS_SUCCESS,
   GET_PRODUCTS_FAILURE,
+  SET_CATEGORY,
 } from "../actionTypes";
 
 const initialState = {

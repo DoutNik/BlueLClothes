@@ -1,5 +1,6 @@
 import styles from "./Glasses.module.css";
 import Categories from "../../Categories/Categories";
+import SearchBar from "../../SearchBar/SearchBar";
 import backgroundImage from "../../../assets/backgroundImage.jpg";
 
 import { useEffect } from "react";
@@ -38,7 +39,7 @@ const Glasses = () => {
       }}
     >
       <Categories />
-
+      <SearchBar />
       {loading && <p>Cargando...</p>}
 
       {error && <p style={{ color: "red" }}>{error}</p>}

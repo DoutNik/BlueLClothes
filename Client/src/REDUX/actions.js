@@ -3,6 +3,7 @@ import {
   GET_PRODUCTS_REQUEST,
   GET_PRODUCTS_SUCCESS,
   GET_PRODUCTS_FAILURE,
+  SET_CATEGORY,
   ADD_TO_CART,
   REMOVE_FROM_CART,
   INCREASE_QTY,
@@ -14,7 +15,7 @@ import {
   ADD_NOTIFICATION,
   MARK_NOTIFICATION_READ,
   MARK_ALL_NOTIFICATIONS_READ,
-  DELETE_NOTIFICATION
+  DELETE_NOTIFICATION,
 } from "./actionTypes";
 
 /* PRODUCTS */
@@ -42,6 +43,11 @@ export const getProducts = () => {
   };
 };
 
+export const setCategory = (category) => ({
+  type: SET_CATEGORY,
+  payload: category,
+});
+
 /* CART */
 export const addToCart = (product, quantity = 1) => ({
   type: ADD_TO_CART,
@@ -67,7 +73,6 @@ export const clearCart = () => ({
   type: CLEAR_CART,
 });
 
-
 // ORDERS
 export const getOrders = () => {
   return async (dispatch) => {
@@ -89,84 +94,74 @@ export const getOrders = () => {
   };
 };
 
-export const getNotifications =
-  () => async (dispatch) => {
-    try {
-      dispatch({
-        type:
-          "GET_NOTIFICATIONS_REQUEST",
-      });
+export const getNotifications = () => async (dispatch) => {
+  try {
+    dispatch({
+      type: "GET_NOTIFICATIONS_REQUEST",
+    });
 
-      const res = await api.get(
-        "/notifications"
-      );
+    const res = await api.get("/notifications");
 
-      dispatch({
-        type:
-          "GET_NOTIFICATIONS_SUCCESS",
-        payload: res.data,
-      });
-    } catch (error) {
-      dispatch({
-        type:
-          "GET_NOTIFICATIONS_FAILURE",
-        payload: error.message,
-      });
-    }
+    dispatch({
+      type: "GET_NOTIFICATIONS_SUCCESS",
+      payload: res.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: "GET_NOTIFICATIONS_FAILURE",
+      payload: error.message,
+    });
+  }
+};
+
+export const addNotification = (notification) => ({
+  type: "ADD_NOTIFICATION",
+  payload: notification,
+});
+
+export const markNotificationRead = (id) => async (dispatch) => {
+  try {
+    await api.put(`/notifications/${id}/read`);
+
+    dispatch({
+      type: "MARK_NOTIFICATION_READ",
+      payload: id,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const markAllNotificationsRead = () => async (dispatch) => {
+  try {
+    await api.put("/notifications/read-all");
+
+    dispatch({
+      type: "MARK_ALL_NOTIFICATIONS_READ",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const deleteNotification = (id) => async (dispatch) => {
+  try {
+    await api.delete(`/notifications/${id}`);
+
+    dispatch({
+      type: "DELETE_NOTIFICATION",
+      payload: id,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const SET_SEARCH = "SET_SEARCH";
+
+export const setSearch = (value) => {
+  return {
+    type: SET_SEARCH,
+    payload: value,
   };
-
-export const addNotification =
-  (notification) => ({
-    type: "ADD_NOTIFICATION",
-    payload: notification,
-  });
-
-export const markNotificationRead =
-  (id) => async (dispatch) => {
-    try {
-      await api.put(
-        `/notifications/${id}/read`
-      );
-
-      dispatch({
-        type:
-          "MARK_NOTIFICATION_READ",
-        payload: id,
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-export const markAllNotificationsRead =
-  () => async (dispatch) => {
-    try {
-      await api.put(
-        "/notifications/read-all"
-      );
-
-      dispatch({
-        type:
-          "MARK_ALL_NOTIFICATIONS_READ",
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-export const deleteNotification =
-  (id) => async (dispatch) => {
-    try {
-      await api.delete(
-        `/notifications/${id}`
-      );
-
-      dispatch({
-        type:
-          "DELETE_NOTIFICATION",
-        payload: id,
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
+};
