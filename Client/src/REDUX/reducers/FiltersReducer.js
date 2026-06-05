@@ -3,7 +3,7 @@ import {
 } from "../actionTypes";
 
 const initialState = {
-  category: "all",
+  category: null,
   search: "",
 };
 

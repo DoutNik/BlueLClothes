@@ -16,6 +16,7 @@ import {
   MARK_NOTIFICATION_READ,
   MARK_ALL_NOTIFICATIONS_READ,
   DELETE_NOTIFICATION,
+  SET_SEARCH,
 } from "./actionTypes";
 
 /* PRODUCTS */
@@ -157,7 +158,6 @@ export const deleteNotification = (id) => async (dispatch) => {
   }
 };
 
-export const SET_SEARCH = "SET_SEARCH";
 
 export const setSearch = (value) => {
   return {

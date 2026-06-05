@@ -1,27 +1,23 @@
 import { useState, useEffect } from "react";
 import styles from "./Categories.module.css";
-import { useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { setCategory } from "../../REDUX/actions";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Categories = () => {
   const location = useLocation();
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [selectedCategory, setSelectedCategory] = useState("active");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [isCentered, setIsCentered] = useState(false);
 
-  const category = useSelector((state) => state.filters.category);
-
-  const handleSelect = (categoryName) => {
-    setSelectedCategory(categoryName);
+  const handleSelect = (category) => {
+    setSelectedCategory(category);
     setIsCentered(false);
 
-    dispatch(setCategory(categoryName));
+    navigate(`/?category=${category}`);
   };
 
   useEffect(() => {
-    if (location.pathname === "/") {
+    if (location.pathname === "/" && !location.search) {
       setIsCentered(true);
       setSelectedCategory("");
     }
@@ -41,7 +37,6 @@ const Categories = () => {
         </h1>
 
         <div className={styles.buttonContainer}>
-          {/* ACCESORIOS */}
           <button
             className={`${styles.button} ${styles.accsessories} ${styles.disabled}`}
             disabled
@@ -53,7 +48,6 @@ const Categories = () => {
             </div>
           </button>
 
-          {/* ABANICOS */}
           <button
             className={`${styles.button} ${styles.handfan} ${styles.disabled}`}
             disabled
@@ -65,7 +59,6 @@ const Categories = () => {
             </div>
           </button>
 
-          {/* ROPA */}
           <button
             className={`${styles.button} ${styles.ropa} ${styles.disabled}`}
             disabled
@@ -77,11 +70,8 @@ const Categories = () => {
             </div>
           </button>
 
-          {/* GAFAS */}
           <button
-            className={`${styles.button} ${styles.gafas} ${
-              category === "gafas" ? styles.active : ""
-            }`}
+            className={`${styles.button} ${styles.gafas}`}
             onClick={() => handleSelect("gafas")}
           >
             <p>Gafas</p>
