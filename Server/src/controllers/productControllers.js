@@ -167,7 +167,7 @@ const getAdminProducts = async (req, res) => {
 
     const products = await Product.findAll({
       where,
-      paranoid: true, // 👈 incluye eliminados (soft delete)
+      paranoid: true,
       order: [["createdAt", "DESC"]],
     });
 

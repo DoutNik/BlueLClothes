@@ -9,6 +9,7 @@ const ProductManagement = () => {
   const readyRef = useRef(null);
   const draftRef = useRef(null);
   const publishedRef = useRef(null);
+  const pausedRef = useRef(null);
 
   useEffect(() => {
     fetchProducts();
@@ -99,7 +100,9 @@ const ProductManagement = () => {
 
   const draftProducts = products.filter((p) => p.status === "draft");
 
-  const publishedProducts = products.filter((p) => p.status === "published");
+  const publishedProducts = products.filter((p) => p.status === "published" && p.isActive);
+
+  const pausedProducts = products.filter((p) => !p.isActive);
 
   const renderProduct = (product) => (
     <div className={styles.card} key={product.id}>
@@ -175,6 +178,11 @@ const ProductManagement = () => {
           🌎 Publicados
           <span>{publishedProducts.length}</span>
         </button>
+
+        <button onClick={() => scrollToSection(pausedRef)}>
+          ⏸️ Pausados
+          <span>{pausedProducts.length}</span>
+        </button>
       </div>
 
       {/* READY */}
@@ -212,6 +220,19 @@ const ProductManagement = () => {
             publishedProducts.map(renderProduct)
           ) : (
             <p>No hay productos publicados.</p>
+          )}
+        </div>
+      </section>
+
+      {/* PAUSED */}
+      <section ref={pausedRef} className={styles.section}>
+        <h2>⏸️ Pausados</h2>
+
+        <div className={styles.grid}>
+          {pausedProducts.length ? (
+            pausedProducts.map(renderProduct)
+          ) : (
+            <p>No hay productos pausados.</p>
           )}
         </div>
       </section>
