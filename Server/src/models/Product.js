@@ -33,6 +33,10 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      colors: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+      },
       imageUrl: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: false,

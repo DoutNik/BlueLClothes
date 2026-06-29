@@ -4,6 +4,13 @@ import {
   GET_PRODUCTS_SUCCESS,
   GET_PRODUCTS_FAILURE,
   SET_CATEGORY,
+  SET_BRAND,
+  SET_COLOR,
+  SET_MIN_PRICE,
+  SET_MAX_PRICE,
+  SET_SORT,
+  SET_IN_STOCK,
+  CLEAR_FILTERS,
   ADD_TO_CART,
   REMOVE_FROM_CART,
   INCREASE_QTY,
@@ -44,9 +51,43 @@ export const getProducts = () => {
   };
 };
 
+/* FILTERS */
 export const setCategory = (category) => ({
   type: SET_CATEGORY,
   payload: category,
+});
+export const setBrand = (value) => ({
+  type: SET_BRAND,
+  payload: value,
+});
+
+export const setColor = (value) => ({
+  type: SET_COLOR,
+  payload: value,
+});
+
+export const setMinPrice = (value) => ({
+  type: SET_MIN_PRICE,
+  payload: value,
+});
+
+export const setMaxPrice = (value) => ({
+  type: SET_MAX_PRICE,
+  payload: value,
+});
+
+export const setSort = (value) => ({
+  type: SET_SORT,
+  payload: value,
+});
+
+export const setOnlyStock = (value) => ({
+  type: SET_IN_STOCK,
+  payload: value,
+});
+
+export const clearFilters = () => ({
+  type: CLEAR_FILTERS,
 });
 
 /* CART */

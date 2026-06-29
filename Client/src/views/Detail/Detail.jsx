@@ -56,9 +56,12 @@ const ProductDetail = () => {
     price,
     stock,
     brand,
+    colors,
     category,
     imageUrl = [],
   } = product;
+
+  console.log("Producto:", product);
 
   return (
     <div
@@ -95,6 +98,12 @@ const ProductDetail = () => {
 
           <p className={styles.description}>{description}</p>
 
+          {colors?.length > 0 && (
+            <div>
+              <strong>Colores:</strong> {colors.join(", ")}
+            </div>
+          )}
+
           <div className={styles.price}>${price}</div>
 
           {/* 📦 STOCK */}
@@ -121,7 +130,7 @@ const ProductDetail = () => {
                   >
                     Volver
                   </button>
-                  
+
                   <button
                     className={styles.viewCartBtn}
                     onClick={() => navigate("/cart")}

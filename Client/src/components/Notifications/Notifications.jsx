@@ -33,8 +33,6 @@ const NotificationBell = () => {
 
   // GET INITIAL NOTIFICATIONS
 useEffect(() => {
-  console.log("NotificationBell mounted");
-
   dispatch(getNotifications());
 }, [dispatch]);
 

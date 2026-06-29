@@ -4,6 +4,7 @@ import styles from "./CreateProduct.module.css";
 import backgroundImage from "../../../assets/adminBackground.jpg";
 
 const CreateProduct = () => {
+  const [colorInput, setColorInput] = useState("");
   const [form, setForm] = useState({
     title: "",
     brand: "",
@@ -11,8 +12,70 @@ const CreateProduct = () => {
     description: "",
     price: "",
     stock: "",
+    colors: [],
     imageUrl: "",
   });
+
+  const AVAILABLE_COLORS = [
+    "Negro",
+    "Blanco",
+    "Gris",
+    "Gris Claro",
+    "Gris Oscuro",
+    "Plateado",
+
+    "Rojo",
+    "Rojo Oscuro",
+    "Rojo Bordó",
+    "Rojo Vino",
+
+    "Azul",
+    "Azul Marino",
+    "Azul Francia",
+    "Azul Cielo",
+    "Azul Eléctrico",
+    "Azul Petróleo",
+
+    "Verde",
+    "Verde Militar",
+    "Verde Oliva",
+    "Verde Agua",
+    "Verde Esmeralda",
+    "Verde Lima",
+
+    "Amarillo",
+    "Amarillo Pastel",
+    "Amarillo Mostaza",
+
+    "Naranja",
+    "Naranja Oscuro",
+
+    "Rosa",
+    "Rosa Pastel",
+    "Rosa Fucsia",
+
+    "Violeta",
+    "Lila",
+    "Lavanda",
+
+    "Marrón",
+    "Chocolate",
+    "Beige",
+    "Arena",
+    "Camel",
+
+    "Dorado",
+    "Bronce",
+    "Cobre",
+
+    "Transparente",
+    "Cristal",
+    "Humo",
+
+    "Multicolor",
+    "Tornasol",
+    "Neón",
+  ];
 
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
@@ -34,18 +97,52 @@ const CreateProduct = () => {
     }));
   };
 
+  const handleColorChange = (color) => {
+    setForm((prev) => ({
+      ...prev,
+      colors: prev.colors.includes(color)
+        ? prev.colors.filter((c) => c !== color)
+        : [...prev.colors, color],
+    }));
+  };
+
+  const addColor = (color) => {
+    if (form.colors.includes(color)) return;
+
+    setForm({
+      ...form,
+      colors: [...form.colors, color],
+    });
+
+    setColorInput("");
+  };
+
+  const removeColor = (color) => {
+    setForm({
+      ...form,
+      colors: form.colors.filter((c) => c !== color),
+    });
+  };
+
+  const filteredColors =
+    colorInput.length === 0
+      ? []
+      : AVAILABLE_COLORS.filter(
+          (color) =>
+            color.toLowerCase().includes(colorInput.toLowerCase()) &&
+            !form.colors.includes(color),
+        );
+
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
 
     const filtered = selectedFiles.filter(
-      (file) => !files.some((f) => f.name === file.name)
+      (file) => !files.some((f) => f.name === file.name),
     );
 
     setFiles((prev) => [...prev, ...filtered]);
 
-    const newPreviews = filtered.map((file) =>
-      URL.createObjectURL(file)
-    );
+    const newPreviews = filtered.map((file) => URL.createObjectURL(file));
 
     setPreviews((prev) => [...prev, ...newPreviews]);
 
@@ -129,7 +226,7 @@ const CreateProduct = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       setMessage("✅ Producto creado correctamente");
@@ -141,6 +238,7 @@ const CreateProduct = () => {
         description: "",
         price: "",
         stock: "",
+        colors: [],
         imageUrl: "",
       });
 
@@ -166,7 +264,6 @@ const CreateProduct = () => {
         <h2 className={styles.title}>CREAR PRODUCTO</h2>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          
           <div className={styles.field}>
             <input
               name="title"
@@ -203,6 +300,43 @@ const CreateProduct = () => {
               <option value="accesorios">Accesorios</option>
             </select>
             <p className={styles.errorText}>{errors.category || "\u00A0"}</p>
+          </div>
+          <div className={`${styles.full} ${styles.colorField}`}>
+            <label className={styles.label}>Colores</label>
+
+            <input
+              type="text"
+              value={colorInput}
+              placeholder="Escribe un color..."
+              onChange={(e) => setColorInput(e.target.value)}
+              className={styles.input}
+            />
+
+            {filteredColors.length > 0 && (
+              <div className={styles.suggestions}>
+                {filteredColors.map((color) => (
+                  <div
+                    key={color}
+                    className={styles.suggestion}
+                    onClick={() => addColor(color)}
+                  >
+                    {color}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className={styles.selectedColors}>
+              {form.colors.map((color) => (
+                <div key={color} className={styles.colorTag}>
+                  {color}
+
+                  <button type="button" onClick={() => removeColor(color)}>
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className={styles.field}>

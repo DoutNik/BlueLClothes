@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import Categories from "../../components/Categories/Categories";
 import SearchBar from "../../components/SearchBar/SearchBar";
 import ProductGrid from "../../components/ProductGrid/ProductGrid";
+import Filters from "../../components/Filters/Filters";
 
 import { getProducts } from "../../REDUX/actions";
 
@@ -30,9 +31,21 @@ const Home = () => {
     >
       <Categories />
 
-      {category && <SearchBar />}
+      {category && (
+        <>
+          <SearchBar />
 
-      <ProductGrid />
+          <div className={styles.content}>
+            <aside className={styles.sidebar}>
+              <Filters />
+            </aside>
+
+            <main className={styles.products}>
+              <ProductGrid />
+            </main>
+          </div>
+        </>
+      )}
     </div>
   );
 };

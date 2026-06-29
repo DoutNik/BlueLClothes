@@ -10,7 +10,8 @@ const isProductComplete = (product) => {
     product.price &&
     product.stock &&
     product.imageUrl &&
-    product.category
+    product.category &&
+    product.colors
   );
 };
 
@@ -166,7 +167,7 @@ const getAdminProducts = async (req, res) => {
 
     const products = await Product.findAll({
       where,
-      paranoid: false, // 👈 incluye eliminados (soft delete)
+      paranoid: true, // 👈 incluye eliminados (soft delete)
       order: [["createdAt", "DESC"]],
     });
 
@@ -211,9 +212,9 @@ const deleteProduct = async (req, res) => {
 
     if (!product) return res.status(404).json({ error: "Product not found" });
 
-    await product.destroy();
+    await product.destroy({ force: true });
 
-    res.json({ message: "Product deleted (soft delete)" });
+    res.json({ message: "Product permanently deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

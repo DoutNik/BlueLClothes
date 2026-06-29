@@ -5,7 +5,6 @@ export const GET_ALL_USERS = "GET_ALL_USERS";
 export const GET_PRODUCTS_REQUEST = "GET_PRODUCTS_REQUEST";
 export const GET_PRODUCTS_SUCCESS = "GET_PRODUCTS_SUCCESS";
 export const GET_PRODUCTS_FAILURE = "GET_PRODUCTS_FAILURE";
-export const SET_CATEGORY = "SET_CATEGORY";
 
 /* CART */
 export const ADD_TO_CART = "ADD_TO_CART";
@@ -27,4 +26,23 @@ export const GET_NOTIFICATIONS_FAILURE =
 export const ADD_NOTIFICATION = "ADD_NOTIFICATION";
 export const DELETE_NOTIFICATION = "DELETE_NOTIFICATION";
 
+
+/* FILTERS */
+export const SET_CATEGORY = "SET_CATEGORY";
+
 export const SET_SEARCH = "SET_SEARCH";
+
+export const SET_MIN_PRICE = "SET_MIN_PRICE";
+
+export const SET_MAX_PRICE = "SET_MAX_PRICE";
+
+export const SET_BRAND = "SET_BRAND";
+
+export const SET_COLOR = "SET_COLOR";
+
+export const SET_IN_STOCK = "SET_IN_STOCK";
+
+export const SET_SORT = "SET_SORT";
+
+export const CLEAR_FILTERS = "CLEAR_FILTERS";
+

@@ -2,6 +2,7 @@ import styles from "./Glasses.module.css";
 import Categories from "../../Categories/Categories";
 import SearchBar from "../../SearchBar/SearchBar";
 import backgroundImage from "../../../assets/backgroundImage.jpg";
+import Filters from "../../Filters/Filters";
 
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -40,6 +41,7 @@ const Glasses = () => {
     >
       <Categories />
       <SearchBar />
+      <Filters />
       {loading && <p>Cargando...</p>}
 
       {error && <p style={{ color: "red" }}>{error}</p>}

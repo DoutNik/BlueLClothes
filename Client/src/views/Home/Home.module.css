@@ -1,123 +1,229 @@
 /* Home.module.css */
-.container {
-    text-align: center;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    background-size: cover; /* Ajusta toda la imagen dentro del contenedor */
-    background-position: top center; /* Centra la imagen horizontalmente y la alinea al tope */
-    background-repeat: no-repeat; /* Evita repeticiones */
-    min-height: 200vh;
-    height: 100%;
-    width: 100%; /* Ocupa todo el ancho */
-    overflow-x: hidden;
-  }
-  
-  .containerCentered {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 20px;
-    border-radius: 20px;
-    text-align: center;
-    max-width: 600px;
-    width: 90%;
-    transition: all 0.5s ease; /* Transiciones suaves */
-    z-index: 1000;
-  }
 
-  .containerScrolling {
-  position: relative;
-  margin: 20px auto;
+.container {
+  text-align: center;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+
+  min-height: 200vh;
+  height: 100%;
+  width: 100%;
+
+  overflow-x: hidden;
+}
+
+.containerCentered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  background-color: rgba(0, 0, 0, 0.08);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
   padding: 20px;
   border-radius: 20px;
+
   text-align: center;
+
   max-width: 600px;
   width: 90%;
+
+  transition: all 0.5s ease;
+
+  z-index: 1000;
+}
+
+.containerScrolling {
+  position: relative;
+
+  margin: 20px auto;
+  padding: 20px;
+
+  border-radius: 20px;
+
+  text-align: center;
+
+  max-width: 600px;
+  width: 90%;
+
   transition: all 0.5s ease;
 }
-  
-  .title {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: #ffffff;
-    text-align: center;
-    
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+
+  color: #ffffff;
+
+  text-align: center;
+}
+
+.titleHidden {
+  display: none;
+}
+
+.blurBackground {
+  color: #3f95db;
+  font-weight: bold;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+
+  color: #ddd;
+}
+
+.buttonContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  gap: 15px;
+
+  margin: 20px 0;
+}
+
+.button {
+  width: 140px;
+  height: 80px;
+
+  font-size: 1rem;
+
+  color: #fff;
+
+  opacity: 0.9;
+
+  text-transform: uppercase;
+
+  cursor: pointer;
+
+  border: none;
+  border-radius: 10px;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  transition:
+    transform 0.4s,
+    opacity 0.4s;
+}
+
+.button p {
+  color: black;
+  margin-top: 45%;
+}
+
+.button:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.button:first-child {
+  background-image: url("../../assets/ropaOption2.jpg");
+}
+
+.button:last-child {
+  background-image: url("../../assets/gafasOption.jpg");
+}
+
+/* =========================
+   NUEVO LAYOUT
+========================= */
+
+.content {
+  display: flex;
+
+  gap: 24px;
+
+  align-items: flex-start;
+
+  width: 100%;
+
+  margin-top: 25px;
+}
+
+.sidebar {
+  width: 280px;
+
+  flex-shrink: 0;
+
+  position: sticky;
+  top: 90px;
+}
+
+.products {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =========================
+   ANTIGUO
+========================= */
+
+.text {
+  font-size: 1rem;
+
+  color: #fff;
+
+  background-color: rgba(0, 0, 0, 0.7);
+
+  padding: 15px;
+
+  border-radius: 8px;
+
+  line-height: 1.6;
+
+  display: inline-block;
+
+  max-width: 90%;
+
+  margin: 0 auto;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 992px) {
+  .sidebar {
+    width: 240px;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
   }
 
-  .titleHidden {
-    display: none;
-  }
-  
-  .blurBackground {
-    color: #3f95db; /* Color del texto */
-    font-weight: bold; /* Texto en negrita */
-  }
-  
-  .subtitle {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-    color: #ddd;
-  }
-  
-  .buttonContainer {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin: 20px 0;
-  }
-  
-  .button {
-    width: 140px;
-    height: 80px;
-    font-size: 1rem;
-    color: #fff;
-    opacity: 0.9;
-    text-transform: uppercase;
-    cursor: pointer;
-    border: none;
-    border-radius: 10px;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    transition: transform 0.4s, opacity 0.4s;
-  }
-  
-  .button p {
-    color: black;
-    margin-top: 45%;
-  }
-  
-  .button:hover {
-    transform: scale(1.1); /* Efecto de zoom */
-    opacity: 1; /* Efecto de opacidad */
-  }
-  
-  .button:first-child {
-    background-image: url('../../assets/ropaOption2.jpg'); /* Imagen para "Ver Ropa" */
-  }
-  
-  .button:last-child {
-    background-image: url('../../assets/gafasOption.jpg'); /* Imagen para "Ver Gafas" */
-  }
-  
   .content {
-    margin-top: 20px;
+    flex-direction: column;
+    gap: 16px;
   }
-  
-  .text {
-    font-size: 1rem;
-    color: #fff;
-    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro con transparencia */
-    padding: 15px;
-    border-radius: 8px;
-    line-height: 1.6;
-    display: inline-block;
-    max-width: 90%;
-    margin: 0 auto;
+
+  .sidebar {
+    width: 100%;
+
+    position: static;
+
+    order: 1;
   }
-  
+
+  .products {
+    width: 100%;
+
+    order: 2;
+  }
+}

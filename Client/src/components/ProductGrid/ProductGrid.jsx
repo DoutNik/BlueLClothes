@@ -8,21 +8,20 @@ const ProductGrid = () => {
     (state) => state.products,
   );
 
-  const search = useSelector(
-    (state) => state.search?.search || "",
-  );
+  const search = useSelector((state) => state.search?.search || "");
+
+  const filters = useSelector((state) => state.filters);
 
   const [searchParams] = useSearchParams();
 
   const selectedCategory = searchParams.get("category");
 
   const formatImage = (url) => {
-    if (!url) return "https://via.placeholder.com/500";
+    if (!url) {
+      return "https://via.placeholder.com/500";
+    }
 
-    return url.replace(
-      "/upload/",
-      "/upload/w_500,h_500,c_fill,g_auto/",
-    );
+    return url.replace("/upload/", "/upload/w_500,h_500,c_fill,g_auto/");
   };
 
   if (loading) return <p>Cargando...</p>;
@@ -34,21 +33,76 @@ const ProductGrid = () => {
     return null;
   }
 
-  const filteredProducts = allProducts.filter((product) => {
-    const matchCategory =
-      product.category?.toLowerCase() ===
-      selectedCategory.toLowerCase();
+  const filteredProducts = allProducts
+    .filter((product) => {
+      // Categoría
+      const matchCategory =
+        product.category?.toLowerCase() === selectedCategory.toLowerCase();
 
-    const value = search.toLowerCase();
+      // Search
+      const value = search.toLowerCase();
 
-    const matchSearch =
-      !value ||
-      product.title?.toLowerCase().includes(value) ||
-      product.brand?.toLowerCase().includes(value) ||
-      product.category?.toLowerCase().includes(value);
+      const matchSearch =
+        !value ||
+        product.title?.toLowerCase().includes(value) ||
+        product.brand?.toLowerCase().includes(value) ||
+        product.category?.toLowerCase().includes(value) ||
+        product.description?.toLowerCase().includes(value);
 
-    return matchCategory && matchSearch;
-  });
+      // Marca
+      const matchBrand =
+        !filters.brand ||
+        product.brand?.toLowerCase().includes(filters.brand.toLowerCase());
+
+      // Color
+      const matchColor =
+        !filters.color ||
+        product.colores?.some((color) =>
+          color.toLowerCase().includes(filters.color.toLowerCase()),
+        );
+
+      // Stock
+      const matchStock = !filters.inStockOnly || product.stock > 0;
+      
+      // Precio mínimo
+      const matchMinPrice =
+        !filters.minPrice || product.price >= filters.minPrice;
+
+      // Precio máximo
+      const matchMaxPrice =
+        !filters.maxPrice || product.price <= filters.maxPrice;
+
+      return (
+        matchCategory &&
+        matchSearch &&
+        matchBrand &&
+        matchColor &&
+        matchStock &&
+        matchMinPrice &&
+        matchMaxPrice
+      );
+    })
+    .sort((a, b) => {
+      switch (filters.sortBy) {
+        case "price-asc":
+          return a.price - b.price;
+
+        case "price-desc":
+          return b.price - a.price;
+
+        case "name-asc":
+          return a.title.localeCompare(b.title);
+
+        case "name-desc":
+          return b.title.localeCompare(a.title);
+
+        case "stock-desc":
+          return b.stock - a.stock;
+
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className={styles.grid}>
@@ -62,46 +116,38 @@ const ProductGrid = () => {
             <div className={styles.cardWrapper}>
               <div className={styles.cardPro}>
                 <img
-                  src={formatImage(
-                    product.imageUrl?.[0] || product.image,
-                  )}
+                  src={formatImage(product.imageUrl?.[0] || product.image)}
                   alt={product.title}
                   className={styles.image}
                 />
 
                 <div className={styles.overlay} />
 
-                <div className={styles.price}>
-                  ${product.price}
-                </div>
+                <div className={styles.price}>${product.price}</div>
 
                 <div className={styles.content}>
                   <h5>{product.title}</h5>
 
-                  <p>
-                    {product.description || product.desc}
-                  </p>
+                  <p>{product.description || product.desc}</p>
 
-                  <p className={styles.extra}>
-                    Marca: {product.brand}
-                  </p>
+                  <p className={styles.extra}>Marca: {product.brand}</p>
 
-                  <p className={styles.extra}>
-                    Stock: {product.stock}
-                  </p>
+                  <p className={styles.extra}>Stock: {product.stock}</p>
+
+                  {product.colores?.length > 0 && (
+                    <p className={styles.extra}>
+                      Colores: {product.colores.join(", ")}
+                    </p>
+                  )}
                 </div>
 
-                <div className={styles.tag}>
-                  {product.title}
-                </div>
+                <div className={styles.tag}>{product.title}</div>
               </div>
             </div>
           </Link>
         ))
       ) : (
-        <div className={styles.empty}>
-          No se encontraron productos
-        </div>
+        <div className={styles.empty}>No se encontraron productos</div>
       )}
     </div>
   );
