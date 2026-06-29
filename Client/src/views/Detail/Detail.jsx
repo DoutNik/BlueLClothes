@@ -61,7 +61,6 @@ const ProductDetail = () => {
     imageUrl = [],
   } = product;
 
-  console.log("Producto:", product);
 
   return (
     <div

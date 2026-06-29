@@ -13,7 +13,7 @@ createRoot(document.getElementById("root")).render(
       <>
         <App />
         <Toaster
-          position="top-right"
+          position="bottom-right"
           toastOptions={{
             style: {
               background: "#111",

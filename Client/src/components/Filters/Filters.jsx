@@ -15,8 +15,6 @@ import styles from "./Filters.module.css";
 const Filters = () => {
   const dispatch = useDispatch();
 
-  console.log("Filtros");
-
   return (
     <div className={styles.filtersContainer}>
       <input
