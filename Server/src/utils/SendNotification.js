@@ -1,9 +1,8 @@
 const admin = require("./firebaseAdmin");
 
-const {
-  Notification,
-  User,
-} = require("../DB_config");
+const { Notification, User } = require("../DB_config");
+
+
 
 const sendNotification = async ({
   io,
@@ -31,98 +30,82 @@ const sendNotification = async ({
   sendPush = false,
 }) => {
   try {
-    const notification =
-      await Notification.create({
-        userId,
-        roleTarget,
-        title,
-        message,
-        type,
-        category,
-        priority,
-        entityType,
-        entityId,
-        link,
-      });
+    const notification = await Notification.create({
+      userId,
+      roleTarget,
+      title,
+      message,
+      type,
+      category,
+      priority,
+      entityType,
+      entityId,
+      link,
+    });
 
-    console.log(
-      "✅ Notification creada"
-    );
+    console.log("✅ Notification creada");
 
     // ADMINS
-    if (roleTarget === "admins") {
-      io.to("admins").emit(
-        "new_notification",
-        notification
-      );
+    if (roleTarget === "admin") {
+      io.to("admin").emit("new_notification", notification);
 
-      console.log(
-        "📡 enviada a admins"
-      );
+      console.log("📡 enviada a admins");
     }
 
-    // TODOS LOS USERS
+    // USERS
     if (roleTarget === "users") {
-      io.to("users").emit(
-        "new_notification",
-        notification
-      );
+      io.to("users").emit("new_notification", notification);
 
-      console.log(
-        "📡 enviada a users"
-      );
+      console.log("📡 enviada a users");
+    }
+
+    // TODOS
+    if (roleTarget === "all") {
+      io.to("admin").emit("new_notification", notification);
+      io.to("users").emit("new_notification", notification);
+
+      console.log("📡 enviada a admins y users");
     }
 
     // USER INDIVIDUAL
     if (userId) {
-      io.to(`user_${userId}`).emit(
-        "new_notification",
-        notification
-      );
+      io.to(`user_${userId}`).emit("new_notification", notification);
 
-      console.log(
-        `📡 enviada a user_${userId}`
-      );
+      console.log(`📡 enviada a user_${userId}`);
     }
 
     // PUSH
     if (sendPush && userId) {
-      const user =
-        await User.findByPk(userId);
+      const user = await User.findByPk(userId);
 
       if (user?.fcmToken) {
-        await admin
-          .messaging()
-          .send({
-            token: user.fcmToken,
+        await admin.messaging().send({
+          token: user.fcmToken,
 
-            notification: {
-              title,
-              body: message,
-            },
+          notification: {
+            title,
+            body: message,
+          },
 
-            webpush: {
-              fcmOptions: {
-                link: link || "/",
-              },
-            },
-
-            data: {
+          webpush: {
+            fcmOptions: {
               link: link || "/",
             },
-          });
+          },
+
+          data: {
+            link: link || "/",
+          },
+        });
       }
     }
 
     return notification;
   } catch (error) {
-    console.log(
-      "❌ ERROR SEND NOTIFICATION"
-    );
+    console.log("❌ ERROR SEND NOTIFICATION");
 
     console.log(error);
   }
 };
 
-module.exports =
-  sendNotification;
+module.exports = sendNotification;

@@ -2,7 +2,6 @@
 const { Product, User } = require("../DB_config");
 const sendNotification = require("../utils/sendNotification");
 
-
 const isProductComplete = (product) => {
   return (
     product.title &&
@@ -23,77 +22,38 @@ const createProduct = async (req, res) => {
     const product = await Product.create({
       ...data,
       status: "draft", // siempre arranca como borrador
-    });    
+    });
 
     if (!isProductComplete(product)) {
-// 🔥 NOTIFICACIÓN ADMINS
-await sendNotification({
-  io: req.io,
-
-  roleTarget: "admin",
-
-  title: "Nuevo producto en borrador",
-
-  message: `${product.category} ${product.title} de ${product.brand} fue creado por ${req.user.firstName} ${req.user.lastName} y necesita ser completado para su publicación`,
-
-  type: "info",
-
-  category: "products",
-
-  priority: "medium",
-
-  entityType: "product",
-
-  entityId: product.id,
-
-  link: `/product-detail/${product.id}`,
-});
-    }
-
-    if (isProductComplete(product)) {
+      await sendNotification({
+        io: req.io,
+        roleTarget: "admin",
+        title: "Nuevo producto en borrador",
+        message: `${product.category} ${product.title} de ${product.brand} fue creado por ${req.user.firstName} ${req.user.lastName} y necesita ser completado para su publicación`,
+        type: "info",
+        category: "products",
+        priority: "medium",
+        entityType: "product",
+        entityId: product.id,
+        link: `/product-detail/${product.id}`,
+      });
+    } else {
       product.status = "ready";
       await product.save();
+
+      await sendNotification({
+        io: req.io,
+        roleTarget: "admin",
+        title: "Nuevo producto listo para revisión",
+        message: `${product.category} ${product.title} de ${product.brand} fue creado por ${req.user.firstName} ${req.user.lastName} y está listo para revisión`,
+        type: "info",
+        category: "products",
+        priority: "medium",
+        entityType: "product",
+        entityId: product.id,
+        link: `/product-detail/${product.id}`,
+      });
     }
-
-// 🔥 NOTIFICACIÓN ADMINS
-await sendNotification({
-  io: req.io,
-
-  roleTarget: "admin",
-
-  title: "Nuevo producto publicado",
-
-  message: `${product.category} ${product.title} de ${product.brand} fue creado y publicado por ${req.user.firstName} ${req.user.lastName}`,
-
-  type: "info",
-
-  category: "products",
-
-  priority: "medium",
-
-  entityType: "product",
-
-  entityId: product.id,
-
-  link: `/product-detail/${product.id}`,
-});
-
-await sendNotification({
-  io: req.io,
-
-  roleTarget: "users",
-
-  title: "Nuevo producto",
-
-  message: `${product.category} ${product.title} de ${product.brand} ya disponible`,
-
-  type: "info",
-
-  category: "products",
-
-  link: `/product-detail/${product.id}`,
-});
-
 
     res.status(201).json({
       message: isProductComplete(product)
@@ -105,8 +65,6 @@ await sendNotification({
     res.status(400).json({ error: error.message });
   }
 };
-
-
 
 const publishProduct = async (req, res) => {
   try {
@@ -127,6 +85,22 @@ const publishProduct = async (req, res) => {
     // publicar
     product.status = "published";
     await product.save();
+
+    await sendNotification({
+      io: req.io,
+
+      roleTarget: "all",
+
+      title: "Nuevo producto",
+
+      message: `${product.category} ${product.title} de ${product.brand} ya disponible`,
+
+      type: "info",
+
+      category: "products",
+
+      link: `/product-detail/${product.id}`,
+    });
 
     res.status(200).json({
       message: "Producto publicado correctamente",
@@ -221,22 +195,32 @@ const deleteProduct = async (req, res) => {
 };
 
 // SUSPEND (no borrar, solo desactivar)
+// SUSPEND (pausar producto)
 const suspendProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
 
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
 
     product.isActive = false;
     await product.save();
 
-    await sendNotification({
-      io: req.io,
-      roleTarget: "admin",
-      title: "Producto pausado",
-      message: `${product.title} fue pausado`,
-      type: "warning",
-    });
+    // Solo notificar si el producto estaba publicado
+    if (product.status === "published") {
+      await sendNotification({
+        io: req.io,
+        roleTarget: "all",
+        title: "Producto pausado",
+        message: `${product.title} fue pausado y ya no está disponible temporalmente.`,
+        type: "warning",
+        category: "products",
+        entityType: "product",
+        entityId: product.id,
+        link: `/product-detail/${product.id}`,
+      });
+    }
 
     res.json({ message: "Product suspended" });
   } catch (error) {
@@ -249,19 +233,29 @@ const activateProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
 
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
 
     product.isActive = true;
     await product.save();
 
-    await sendNotification({
-      io,
-      roleTarget: "admin",
-      title: "Producto reactivado",
-      message: `${product.title} fue reactivado`,
-      type: "info",
-    });
-
+    // Solo notificar si el producto está publicado
+    console.log("Enviando notificación de producto pausado");
+    if (product.status === "published") {
+      await sendNotification({
+        io: req.io,
+        roleTarget: "all",
+        title: "Producto disponible nuevamente",
+        message: `${product.title} volvió a estar disponible.`,
+        type: "info",
+        category: "products",
+        entityType: "product",
+        entityId: product.id,
+        link: `/product-detail/${product.id}`,
+      });
+    }
+console.log("Notificación enviada");
     res.json({ message: "Product activated" });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -10,31 +10,15 @@ const {
 } = require("../controllers/NotificationsController");
 
 // GET ALL
-router.get(
-  "/",
-  auth,
-  getNotifications
-);
+router.get("/", auth, getNotifications);
 
 // MARK ONE READ
-router.put(
-  "/:id/read",
-  auth,
-  markNotificationRead
-);
+router.put("/:id/read", auth, markNotificationRead);
 
 // MARK ALL READ
-router.put(
-  "/read-all",
-  auth,
-  markAllNotificationsRead
-);
+router.put("/read-all", auth, markAllNotificationsRead);
 
 // DELETE
-router.delete(
-  "/:id",
-  auth,
-  deleteNotification
-);
+router.delete("/:id", auth, deleteNotification);
 
 module.exports = router;

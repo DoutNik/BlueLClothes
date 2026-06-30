@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Bell, Check, Trash2 } from "lucide-react";
-
 import { useDispatch, useSelector } from "react-redux";
-
 import { useNavigate } from "react-router-dom";
 
 import socket from "../../Socket";
@@ -19,47 +16,56 @@ import styles from "./Notifications.module.css";
 
 const NotificationBell = () => {
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
-
-  const dropdownRef = useRef();
+  const dropdownRef = useRef(null);
 
   const [open, setOpen] = useState(false);
 
-  const { notifications } = useSelector((state) => state.notifications);
+  const notifications = useSelector(
+    (state) => state.notifications.notifications
+  );
 
-  // UNREAD COUNT
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // UNREAD COUNT (memoizado para evitar recalculo innecesario)
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => !n.read).length;
+  }, [notifications]);
 
+  // =========================
   // GET INITIAL NOTIFICATIONS
-useEffect(() => {
-  dispatch(getNotifications());
-}, [dispatch]);
-
-
-  // SOCKETS
+  // =========================
   useEffect(() => {
-
-    socket.on("new_notification", (notification) => {
-      dispatch(addNotification(notification));
-
-      // SOUND
-      const audio = new Audio("/notification.mp3");
-
-      audio.volume = 0.5;
-
-      audio.play();
-    });
-
-    return () => {
-      socket.off("new_notification");
-    };
+    dispatch(getNotifications());
   }, [dispatch]);
 
+  // =========================
+  // SOCKET (SAFE + STRICT MODE)
+  // =========================
+useEffect(() => {
+  const handler = (notification) => {
+    dispatch(addNotification(notification));
+
+    const audio = new Audio("/notification.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+  };
+
+  socket.off("new_notification"); // 👈 CLAVE anti-duplicación
+  socket.on("new_notification", handler);
+
+  return () => {
+    socket.off("new_notification", handler);
+  };
+}, [dispatch]);
+
+  // =========================
   // CLOSE OUTSIDE CLICK
+  // =========================
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setOpen(false);
       }
     };
@@ -71,7 +77,9 @@ useEffect(() => {
     };
   }, []);
 
+  // =========================
   // OPEN NOTIFICATION
+  // =========================
   const handleOpenNotification = (notification) => {
     if (!notification.read) {
       dispatch(markNotificationRead(notification.id));
@@ -87,10 +95,15 @@ useEffect(() => {
   return (
     <div className={styles.wrapper} ref={dropdownRef}>
       {/* BELL */}
-      <button className={styles.bellButton} onClick={() => setOpen(!open)}>
+      <button
+        className={styles.bellButton}
+        onClick={() => setOpen((prev) => !prev)}
+      >
         <Bell size={22} />
 
-        {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+        {unreadCount > 0 && (
+          <span className={styles.badge}>{unreadCount}</span>
+        )}
       </button>
 
       {/* DROPDOWN */}
@@ -102,29 +115,35 @@ useEffect(() => {
 
           <div className={styles.notificationList}>
             {notifications.length === 0 ? (
-              <div className={styles.empty}>No hay notificaciones</div>
+              <div className={styles.empty}>
+                No hay notificaciones
+              </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`${styles.notificationCard}
-                    ${!notification.read ? styles.unread : ""}`}
+                  className={`${styles.notificationCard} ${
+                    !notification.read ? styles.unread : ""
+                  }`}
                 >
-                  {/* CLICK AREA */}
+                  {/* CONTENT CLICK */}
                   <div
                     className={styles.content}
-                    onClick={() => handleOpenNotification(notification)}
+                    onClick={() =>
+                      handleOpenNotification(notification)
+                    }
                   >
                     <div className={styles.top}>
                       <h4>{notification.title}</h4>
-
                       <span>{notification.type}</span>
                     </div>
 
                     <p>{notification.message}</p>
 
                     <small>
-                      {new Date(notification.createdAt).toLocaleString()}
+                      {new Date(
+                        notification.createdAt
+                      ).toLocaleString()}
                     </small>
                   </div>
 
@@ -132,18 +151,24 @@ useEffect(() => {
                   <div className={styles.actions}>
                     {!notification.read && (
                       <button
-                        onClick={() =>
-                          dispatch(markNotificationRead(notification.id))
-                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(
+                            markNotificationRead(notification.id)
+                          );
+                        }}
                       >
                         <Check size={16} />
                       </button>
                     )}
 
                     <button
-                      onClick={() =>
-                        dispatch(deleteNotification(notification.id))
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch(
+                          deleteNotification(notification.id)
+                        );
+                      }}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -158,4 +183,4 @@ useEffect(() => {
   );
 };
 
-export default NotificationBell;
+export default NotificationBell; 

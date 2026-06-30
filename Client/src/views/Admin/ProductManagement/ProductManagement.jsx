@@ -40,22 +40,19 @@ const ProductManagement = () => {
     }
   };
 
-  const handleToggleStatus = async (product) => {
-    try {
-      const updated = {
-        ...product,
-        isActive: !product.isActive,
-      };
-
-      await api.put(`/products/${product.id}`, updated);
-
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? updated : p)),
-      );
-    } catch (error) {
-      console.error(error);
+const handleToggleStatus = async (product) => {
+  try {
+    if (product.isActive) {
+      await api.put(`/products/${product.id}/suspend`);
+    } else {
+      await api.put(`/products/${product.id}/activate`);
     }
-  };
+
+    fetchProducts();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const handleSave = async () => {
     try {
@@ -71,23 +68,15 @@ const ProductManagement = () => {
     }
   };
 
-  const handlePublish = async (product) => {
-    try {
-      const updated = {
-        ...product,
-        status: "published",
-        isActive: true,
-      };
+const handlePublish = async () => {
+  try {
+    await api.put(`/products/${editingProduct.id}/publish`);
 
-      await api.put(`/products/${product.id}`, updated);
-
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? updated : p)),
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    fetchProducts();
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const scrollToSection = (ref) => {
     ref.current?.scrollIntoView({

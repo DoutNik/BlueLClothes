@@ -13,33 +13,38 @@ const {
   deleteProduct,
   suspendProduct,
   activateProduct,
-  publishProduct, // 👈 nuevo
-  getAdminProducts, // 👈 opcional pero recomendado
+  publishProduct,
+  getAdminProducts,
 } = require("../controllers/productControllers");
 
+// =======================
+// PUBLIC
+// =======================
 
-// 🔓 PUBLIC
-router.get("/", getAllProducts); // solo debería devolver publicados
+router.get("/", getAllProducts);
+
+// IMPORTANTE: las rutas específicas van antes de "/:id"
+router.get("/admin/all", authMiddleware, adminMiddleware, getAdminProducts);
+
 router.get("/:id", getProductById);
 
+// =======================
+// ADMIN
+// =======================
 
-// 🔐 ADMIN
 router.post("/", authMiddleware, adminMiddleware, createProduct);
 
 router.put("/:id", authMiddleware, adminMiddleware, updateProduct);
 
 router.delete("/:id", authMiddleware, adminMiddleware, deleteProduct);
 
-// publicar producto (nuevo flujo)
+// Publicar
 router.put("/:id/publish", authMiddleware, adminMiddleware, publishProduct);
 
-// gestión interna (ver drafts, ready, etc)
-router.get("/admin/all", authMiddleware, adminMiddleware, getAdminProducts);
+// Pausar
+router.put("/:id/suspend", authMiddleware, adminMiddleware, suspendProduct);
 
-
-// lógica negocio (también admin)
-router.patch("/:id/suspend", authMiddleware, adminMiddleware, suspendProduct);
-router.patch("/:id/activate", authMiddleware, adminMiddleware, activateProduct);
-
+// Reactivar
+router.put("/:id/activate", authMiddleware, adminMiddleware, activateProduct);
 
 module.exports = router;

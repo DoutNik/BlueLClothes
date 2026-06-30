@@ -200,6 +200,16 @@ const CreateProduct = () => {
     return uploadedUrls;
   };
 
+  const isComplete =
+    form.title.trim() &&
+    form.brand.trim() &&
+    form.category &&
+    form.description.trim() &&
+    Number(form.price) > 0 &&
+    Number(form.stock) > 0 &&
+    form.colors.length > 0 &&
+    files.length > 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -229,7 +239,11 @@ const CreateProduct = () => {
         },
       );
 
-      setMessage("✅ Producto creado correctamente");
+      setMessage(
+        isComplete
+          ? "✅ Producto creado y esperando revisión."
+          : "✅ Borrador guardado y esperando ser completado.",
+      );
 
       setForm({
         title: "",
@@ -418,7 +432,11 @@ const CreateProduct = () => {
             className={`${styles.button} ${styles.full}`}
             disabled={loading}
           >
-            {loading ? "SUBIENDO..." : "GUARDAR BORRADOR"}
+            {loading
+              ? "SUBIENDO..."
+              : isComplete
+                ? "CREAR PRODUCTO"
+                : "GUARDAR BORRADOR"}
           </button>
         </form>
 

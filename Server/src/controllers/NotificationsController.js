@@ -9,14 +9,22 @@ const getNotifications = async (req, res) => {
     // ADMIN
     if (req.user.role === "admin") {
       where = {
-        [Op.or]: [{ roleTarget: "admin" }, { userId: req.user.id }],
+        [Op.or]: [
+          { roleTarget: "admin" },
+          { roleTarget: "all" },
+          { userId: req.user.id },
+        ],
       };
     }
 
     // USER
     else {
       where = {
-        [Op.or]: [{ userId: req.user.id }, { roleTarget: "users" }],
+        [Op.or]: [
+          { userId: req.user.id },
+          { roleTarget: "users" },
+          { roleTarget: "all" },
+        ],
       };
     }
 
@@ -53,10 +61,13 @@ const markNotificationRead = async (req, res) => {
 
     const isGlobalUsersNotification = notification.roleTarget === "users";
 
+    const isGlobalNotification = notification.roleTarget === "all";
+
     if (
       req.user.role !== "admin" &&
       !isUserNotification &&
-      !isGlobalUsersNotification
+      !isGlobalUsersNotification &&
+      !isGlobalNotification
     ) {
       return res.sendStatus(403);
     }
@@ -64,7 +75,8 @@ const markNotificationRead = async (req, res) => {
     if (
       req.user.role === "admin" &&
       !isAdminNotification &&
-      !isUserNotification
+      !isUserNotification &&
+      !isGlobalNotification
     ) {
       return res.sendStatus(403);
     }
@@ -91,12 +103,20 @@ const markAllNotificationsRead = async (req, res) => {
     if (req.user.role === "admin") {
       where = {
         read: false,
-        [Op.or]: [{ roleTarget: "admin" }, { userId: req.user.id }],
+        [Op.or]: [
+          { roleTarget: "admin" },
+          { roleTarget: "all" },
+          { userId: req.user.id },
+        ],
       };
     } else {
       where = {
         read: false,
-        [Op.or]: [{ userId: req.user.id }, { roleTarget: "users" }],
+        [Op.or]: [
+          { userId: req.user.id },
+          { roleTarget: "users" },
+          { roleTarget: "all" },
+        ],
       };
     }
 
@@ -128,13 +148,15 @@ const deleteNotification = async (req, res) => {
       });
     }
 
-    const canDelete =
-      req.user.role === "admin"
-        ? notification.roleTarget === "admin" ||
-          notification.userId === req.user.id
-        : notification.userId === req.user.id ||
-          notification.roleTarget === "users";
-
+const canDelete =
+  req.user.role === "admin"
+    ? notification.roleTarget === "admin" ||
+      notification.roleTarget === "all" ||
+      notification.userId === req.user.id
+    : notification.userId === req.user.id ||
+      notification.roleTarget === "users" ||
+      notification.roleTarget === "all";
+      
     if (!canDelete) {
       return res.sendStatus(403);
     }
