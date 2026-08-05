@@ -121,7 +121,7 @@ export const getOrders = () => {
     dispatch({ type: "GET_ORDERS_REQUEST" });
 
     try {
-      const res = await api.get("/orders");
+      const res = await api.get("/orders/getOrders");
 
       dispatch({
         type: "GET_ORDERS_SUCCESS",

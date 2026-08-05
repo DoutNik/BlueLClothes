@@ -7,6 +7,7 @@ const paymentRoutes = require("./payment");
 const upload = require("../middleware/uploadCloudinary");
 const orderRoutes = require("./orderRoutes");
 const notificationRoutes = require("./notifications");
+const adminRoutes = require("./Admin");
 
 const { uploadImage } = require("../controllers/cloudinary");
 
@@ -17,6 +18,7 @@ router.use("/users", userRoutes);
 router.use("/payment", paymentRoutes);
 router.use("/orders", orderRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/admin", adminRoutes);
 
 router.post("/upload", upload.single("image"), uploadImage);
 

@@ -2,25 +2,33 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./AdminDashboard.module.css";
 import { useSelector } from "react-redux";
+import api from "../../api/api";
+import SalesCalendar from "./SalesCalendar/SalesCalendar";
 
 const AdminDashboard = () => {
+  const [showCalendar, setShowCalendar] = useState(false);
   const [metrics, setMetrics] = useState({
     products: 0,
     users: 0,
     published: 0,
     drafts: 0,
+    paused: 0,
+    orders: 0,
   });
 
   const orders = useSelector((state) => state.orders);
 
   useEffect(() => {
-    // 🔧 Simulación (después conectás a tu backend)
-    setMetrics({
-      products: 120,
-      users: 45,
-      published: 80,
-      drafts: 40,
-    });
+    const fetchMetrics = async () => {
+      try {
+        const { data } = await api.get("/admin/dashboard");
+        setMetrics(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchMetrics();
   }, []);
 
   return (
@@ -35,11 +43,6 @@ const AdminDashboard = () => {
         </div>
 
         <div className={styles.metricCard}>
-          <h3>Usuarios</h3>
-          <p>{metrics.users}</p>
-        </div>
-
-        <div className={styles.metricCard}>
           <h3>Publicados</h3>
           <p>{metrics.published}</p>
         </div>
@@ -48,6 +51,29 @@ const AdminDashboard = () => {
           <h3>Borradores</h3>
           <p>{metrics.drafts}</p>
         </div>
+
+        <div className={styles.metricCard}>
+          <h3>Pausados</h3>
+          <p>{metrics.paused}</p>
+        </div>
+
+        <div className={styles.metricCard}>
+          <h3>Usuarios</h3>
+          <p>{metrics.users}</p>
+        </div>
+
+        <div className={styles.metricCard}>
+          <h3>Ventas</h3>
+          <p>{metrics.orders}</p>
+        </div>
+
+        <Link
+          to="#"
+          className={styles.actionCard}
+          onClick={() => setShowCalendar(true)}
+        >
+          📅 Calendario de ventas
+        </Link>
       </div>
 
       {/* ACTION CARDS */}
@@ -68,6 +94,9 @@ const AdminDashboard = () => {
           👥 Gestión de Usuarios
         </Link>
       </div>
+      {showCalendar && (
+        <SalesCalendar onClose={() => setShowCalendar(false)} />
+      )}
     </div>
   );
 };

@@ -2,14 +2,12 @@
 const { User } = require("../DB_config");
 const  cloudinary  = require("../utils/cludinary");
 const sendNotification = require("../utils/SendNotification");
-const { io } = require("../../serverConfig");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // REGISTER
 const register = async (req, res) => {
   try {
-
     const {
       email,
       password,
@@ -21,88 +19,147 @@ const register = async (req, res) => {
       country,
     } = req.body;
 
+    // ==========================
     // VALIDACIÓN
+    // ==========================
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({
-        error: "Missing required fields",
+        error: "Faltan campos obligatorios.",
       });
     }
 
+    // ==========================
     // EMAIL EXISTENTE
+    // ==========================
     const existing = await User.findOne({
       where: { email },
     });
 
-    console.log(existing);
-
     if (existing) {
       return res.status(400).json({
-        error: "User already exists",
+        error: "Ya existe un usuario con ese email.",
       });
     }
 
+    // ==========================
     // HASH PASSWORD
-    const hashed = await bcrypt.hash(password, 10);
+    // ==========================
+    let hashed;
 
-    // AVATAR CLOUDINARY
+    try {
+      hashed = await bcrypt.hash(password, 10);
+    } catch (error) {
+      console.error("❌ Error generando hash de contraseña");
+      console.error(error);
+
+      return res.status(500).json({
+        error: "No se pudo procesar la contraseña.",
+      });
+    }
+
+    // ==========================
+    // CLOUDINARY
+    // ==========================
     let avatarUrl = null;
 
     if (req.file) {
-      const uploadedImage = await new Promise(
-        (resolve, reject) => {
+      try {
+        const uploadedImage = await new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
             {
               folder: "Hypnotika/Users/Avatars",
             },
             (error, result) => {
-              if (error) {
-                reject(error);
-              } else {
-                resolve(result);
-              }
+              if (error) return reject(error);
+              resolve(result);
             }
           );
 
           stream.end(req.file.buffer);
-        }
-      );
+        });
 
-      avatarUrl = uploadedImage.secure_url;
+        avatarUrl = uploadedImage.secure_url;
+      } catch (error) {
+        console.error("❌ Error subiendo avatar a Cloudinary");
+        console.error(error);
+
+        return res.status(500).json({
+          error: "No se pudo subir la imagen de perfil.",
+        });
+      }
     }
 
+    // ==========================
     // CREAR USUARIO
-    const user = await User.create({
-      email,
-      password: hashed,
-      firstName,
-      lastName,
-      phone,
-      address,
-      city,
-      country,
-      avatar: avatarUrl,
-    });
+    // ==========================
+    let user;
 
+    try {
+      user = await User.create({
+        email,
+        password: hashed,
+        firstName,
+        lastName,
+        phone,
+        address,
+        city,
+        country,
+        avatar: avatarUrl,
+      });
+    } catch (error) {
+      console.error("❌ Error creando usuario");
+      console.error(error);
+
+      return res.status(500).json({
+        error: "No se pudo crear el usuario.",
+      });
+    }
+
+    // ==========================
     // NOTIFICACIÓN
-    await sendNotification({
-      io,
-      roleTarget: "admin",
-      title: "Nuevo usuario",
-      message: `${user.firstName} ${user.lastName} se registró`,
-      type: "info",
-    });
+    // ==========================
+    try {
+      await sendNotification({
+        io: req.io,
+        roleTarget: "admin",
+        title: "👤 Nuevo usuario registrado",
+        message: `${user.firstName} ${user.lastName} (${user.email}) creó una cuenta.`,
+        type: "info",
+      });
+    } catch (error) {
+      console.error("⚠️ Error enviando notificación");
+      console.error(error);
 
-    // RESPONSE
-    res.status(201).json({
+      // No cancelamos el registro por un fallo en la notificación.
+    }
+
+    // ==========================
+    // RESPUESTA
+    // ==========================
+    return res.status(201).json({
       id: user.id,
       email: user.email,
       avatar: user.avatar,
     });
-  } catch (error) {
-    console.error(error);
 
-    res.status(500).json({
-      error: error.message,
+  } catch (error) {
+    console.error("========================================");
+    console.error("❌ ERROR EN REGISTER");
+    console.error("Mensaje:", error.message);
+    console.error("Stack:");
+    console.error(error.stack);
+    console.error("Body:");
+    console.error(req.body);
+    console.error("Archivo:");
+    console.error(req.file);
+    console.error("========================================");
+
+    return res.status(500).json({
+      error: "Error interno del servidor.",
+      details:
+        process.env.NODE_ENV !== "production"
+          ? error.message
+          : undefined,
     });
   }
 };

@@ -19,6 +19,7 @@ const ProductManagement = () => {
     try {
       const res = await api.get("/products/admin/all");
       setProducts(res.data);
+      console.log(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -68,13 +69,13 @@ const handleToggleStatus = async (product) => {
     }
   };
 
-const handlePublish = async () => {
+const handlePublish = async (product) => {
   try {
-    await api.put(`/products/${editingProduct.id}/publish`);
+    await api.put(`/products/${product.id}/publish`);
 
     fetchProducts();
   } catch (error) {
-    console.error(error);
+    console.error("Error al publicar el producto:", error);
   }
 };
 

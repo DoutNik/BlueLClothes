@@ -4,6 +4,7 @@ import styles from "./Register.module.css";
 const Register = () => {
   const [step, setStep] = useState(1);
   const [status, setStatus] = useState("idle"); // idle | success | error
+  const [message, setMessage] = useState("");
 
   const [form, setForm] = useState({
     email: "",
@@ -80,10 +81,15 @@ const Register = () => {
 
   const handleSubmit = async () => {
     try {
+      setStatus("idle");
+      setMessage("");
+
       const formData = new FormData();
 
       Object.entries(form).forEach(([key, value]) => {
-        formData.append(key, value);
+        if (value !== null) {
+          formData.append(key, value);
+        }
       });
 
       const res = await fetch("http://localhost:3001/users/register", {
@@ -91,15 +97,21 @@ const Register = () => {
         body: formData,
       });
 
-      if (!res.ok) throw new Error();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Ocurrió un error inesperado.");
+      }
 
       setStatus("success");
+      setMessage("✅ Usuario registrado correctamente.");
 
       setTimeout(() => {
         window.location.href = "/login";
       }, 1500);
-    } catch {
+    } catch (error) {
       setStatus("error");
+      setMessage(error.message);
     }
   };
 
@@ -111,6 +123,7 @@ const Register = () => {
         } ${status === "error" ? styles.error : ""}`}
       >
         <h2 className={styles.authTitle}>🪪 Pre acreditación</h2>
+
 
         {/* PROGRESS BAR */}
         <div className={styles.progressBar}>
@@ -226,6 +239,15 @@ const Register = () => {
                 Finalizar
               </button>
             </div>
+                    {message && (
+          <div
+            className={
+              status === "success" ? styles.successMessage : styles.errorMessage
+            }
+          >
+            {message}
+          </div>
+        )}
           </div>
         )}
       </div>

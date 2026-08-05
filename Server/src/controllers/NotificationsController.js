@@ -148,15 +148,15 @@ const deleteNotification = async (req, res) => {
       });
     }
 
-const canDelete =
-  req.user.role === "admin"
-    ? notification.roleTarget === "admin" ||
-      notification.roleTarget === "all" ||
-      notification.userId === req.user.id
-    : notification.userId === req.user.id ||
-      notification.roleTarget === "users" ||
-      notification.roleTarget === "all";
-      
+    const canDelete =
+      req.user.role === "admin"
+        ? notification.roleTarget === "admin" ||
+          notification.roleTarget === "all" ||
+          notification.userId === req.user.id
+        : notification.userId === req.user.id ||
+          notification.roleTarget === "users" ||
+          notification.roleTarget === "all";
+
     if (!canDelete) {
       return res.sendStatus(403);
     }

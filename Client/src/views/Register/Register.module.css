@@ -175,12 +175,26 @@
 }
 
 /* ERRORES */
-.errorText {
-  font-size: 0.75rem;
-  color: #ff4d4d;
-  text-align: left;
-  margin-top: -10px;
-  margin-bottom: 10px;
+.successMessage {
+  background: rgba(30, 180, 90, .15);
+  border: 1px solid #1eb45a;
+  color: #1eb45a;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.errorMessage {
+  background: rgba(255, 60, 60, .12);
+  border: 1px solid #ff4d4f;
+  color: #ff4d4f;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  text-align: center;
+  font-weight: 600;
 }
 
 /* SUCCESS */
@@ -193,6 +207,8 @@
   animation: shake 0.3s;
   box-shadow: 0 0 20px #ff4d4d;
 }
+
+
 
 /* ===== ANIMACIÓN ===== */
 @keyframes fadeIn {

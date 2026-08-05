@@ -1,6 +1,7 @@
 const router = require("express").Router();
 
 const auth = require("../middleware/Authorization");
+const adminMiddleware = require("../Middleware/isAdmin");
 
 const {
   getNotifications,
