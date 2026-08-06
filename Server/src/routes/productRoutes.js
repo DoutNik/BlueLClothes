@@ -7,7 +7,7 @@ const adminMiddleware = require("../Middleware/isAdmin");
 
 const {
   createProduct,
-  getAllProducts,
+  getPublicProducts,
   getProductById,
   updateProduct,
   deleteProduct,
@@ -21,7 +21,7 @@ const {
 // PUBLIC
 // =======================
 
-router.get("/", getAllProducts);
+router.get("/", getPublicProducts);
 
 // IMPORTANTE: las rutas específicas van antes de "/:id"
 router.get("/admin/all", authMiddleware, adminMiddleware, getAdminProducts);

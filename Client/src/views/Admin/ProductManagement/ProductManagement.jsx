@@ -41,19 +41,22 @@ const ProductManagement = () => {
     }
   };
 
-const handleToggleStatus = async (product) => {
-  try {
-    if (product.isActive) {
-      await api.put(`/products/${product.id}/suspend`);
-    } else {
-      await api.put(`/products/${product.id}/activate`);
-    }
+  const handleToggleStatus = async (product) => {
+    try {
+      if (product.isActive) {
+        await api.put(`/products/${product.id}/suspend`);
+      } else {
+        await api.put(`/products/${product.id}/activate`);
+      }
 
-    fetchProducts();
-  } catch (error) {
-    console.error(error);
-  }
-};
+      fetchProducts();
+    } catch (error) {
+      alert(
+        error.response?.data?.error ||
+          "Error al cambiar el estado del producto.",
+      );
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -69,15 +72,15 @@ const handleToggleStatus = async (product) => {
     }
   };
 
-const handlePublish = async (product) => {
-  try {
-    await api.put(`/products/${product.id}/publish`);
+  const handlePublish = async (product) => {
+    try {
+      await api.put(`/products/${product.id}/publish`);
 
-    fetchProducts();
-  } catch (error) {
-    console.error("Error al publicar el producto:", error);
-  }
-};
+      fetchProducts();
+    } catch (error) {
+      console.error("Error al publicar el producto:", error);
+    }
+  };
 
   const scrollToSection = (ref) => {
     ref.current?.scrollIntoView({
@@ -90,12 +93,18 @@ const handlePublish = async (product) => {
 
   const draftProducts = products.filter((p) => p.status === "draft");
 
-  const publishedProducts = products.filter((p) => p.status === "published" && p.isActive);
+  const publishedProducts = products.filter(
+    (p) => p.status === "published" && p.isActive,
+  );
 
   const pausedProducts = products.filter((p) => !p.isActive);
 
   const renderProduct = (product) => (
     <div className={styles.card} key={product.id}>
+      {product.stock === 0 && (
+        <div className={styles.outOfStock}>SIN STOCK</div>
+      )}
+
       <img src={product.imageUrl?.[0]} alt={product.title} />
 
       <div className={styles.info}>
@@ -133,6 +142,7 @@ const handlePublish = async (product) => {
           <button
             className={styles.pauseBtn}
             onClick={() => handleToggleStatus(product)}
+            disabled={!product.isActive && product.stock === 0}
           >
             {product.isActive ? "Pausar" : "Activar"}
           </button>
@@ -233,64 +243,74 @@ const handlePublish = async (product) => {
           <div className={styles.modal}>
             <h2>Editar producto</h2>
 
-            <input
-              type="text"
-              placeholder="Título"
-              value={editingProduct.title}
-              onChange={(e) =>
-                setEditingProduct({
-                  ...editingProduct,
-                  title: e.target.value,
-                })
-              }
-            />
+            <div className={styles.field}>
+              <label>Título</label>
+              <input
+                type="text"
+                value={editingProduct.title}
+                onChange={(e) =>
+                  setEditingProduct({
+                    ...editingProduct,
+                    title: e.target.value,
+                  })
+                }
+              />
+            </div>
 
-            <input
-              type="text"
-              placeholder="Marca"
-              value={editingProduct.brand}
-              onChange={(e) =>
-                setEditingProduct({
-                  ...editingProduct,
-                  brand: e.target.value,
-                })
-              }
-            />
+            <div className={styles.field}>
+              <label>Marca</label>
+              <input
+                type="text"
+                value={editingProduct.brand}
+                onChange={(e) =>
+                  setEditingProduct({
+                    ...editingProduct,
+                    brand: e.target.value,
+                  })
+                }
+              />
+            </div>
 
-            <input
-              type="number"
-              placeholder="Precio"
-              value={editingProduct.price}
-              onChange={(e) =>
-                setEditingProduct({
-                  ...editingProduct,
-                  price: Number(e.target.value),
-                })
-              }
-            />
+            <div className={styles.field}>
+              <label>Precio</label>
+              <input
+                type="number"
+                value={editingProduct.price}
+                onChange={(e) =>
+                  setEditingProduct({
+                    ...editingProduct,
+                    price: Number(e.target.value),
+                  })
+                }
+              />
+            </div>
 
-            <input
-              type="number"
-              placeholder="Stock"
-              value={editingProduct.stock}
-              onChange={(e) =>
-                setEditingProduct({
-                  ...editingProduct,
-                  stock: Number(e.target.value),
-                })
-              }
-            />
+            <div className={styles.field}>
+              <label>Stock</label>
+              <input
+                type="number"
+                value={editingProduct.stock}
+                onChange={(e) =>
+                  setEditingProduct({
+                    ...editingProduct,
+                    stock: Number(e.target.value),
+                  })
+                }
+              />
+            </div>
 
-            <textarea
-              placeholder="Descripción"
-              value={editingProduct.description}
-              onChange={(e) =>
-                setEditingProduct({
-                  ...editingProduct,
-                  description: e.target.value,
-                })
-              }
-            />
+            <div className={styles.field}>
+              <label>Descripción</label>
+              <textarea
+                value={editingProduct.description}
+                onChange={(e) =>
+                  setEditingProduct({
+                    ...editingProduct,
+                    description: e.target.value,
+                  })
+                }
+              />
+            </div>
 
             <div className={styles.modalActions}>
               <button className={styles.saveBtn} onClick={handleSave}>

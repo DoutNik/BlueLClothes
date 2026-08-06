@@ -46,7 +46,7 @@ module.exports = (sequelize) => {
         defaultValue: true,
       },
       status: {
-        type: DataTypes.ENUM("draft", "ready", "published"),
+        type: DataTypes.ENUM("draft", "ready", "published", "archived", "paused"),
         defaultValue: "draft",
       },
     },

@@ -237,11 +237,13 @@ const webhook = async (req, res) => {
 
         if (product.stock === 0) {
           try {
+            product.status = "paused";
+            await product.save();
             await sendNotification({
               io: req.io,
               roleTarget: "admin",
               title: "Producto agotado",
-              message: `${product.title} se quedó sin stock`,
+              message: `${product.title} se quedó sin stock y fue pausado`,
               type: "error",
             });
           } catch (e) {

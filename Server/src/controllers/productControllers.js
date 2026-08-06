@@ -112,7 +112,7 @@ const publishProduct = async (req, res) => {
 };
 
 // GET ALL
-const getAllProducts = async (req, res) => {
+const getPublicProducts = async (req, res) => {
   try {
     const products = await Product.findAll({
       where: {
@@ -234,14 +234,20 @@ const activateProduct = async (req, res) => {
     const product = await Product.findByPk(req.params.id);
 
     if (!product) {
-      return res.status(404).json({ error: "Product not found" });
+      return res.status(404).json({
+        error: "Product not found",
+      });
+    }
+
+    if (product.stock <= 0) {
+      return res.status(400).json({
+        error: "No se puede activar un producto sin stock.",
+      });
     }
 
     product.isActive = true;
     await product.save();
 
-    // Solo notificar si el producto está publicado
-    console.log("Enviando notificación de producto pausado");
     if (product.status === "published") {
       await sendNotification({
         io: req.io,
@@ -255,16 +261,23 @@ const activateProduct = async (req, res) => {
         link: `/product-detail/${product.id}`,
       });
     }
-console.log("Notificación enviada");
-    res.json({ message: "Product activated" });
+
+    res.json({
+      message: "Producto activado correctamente",
+      product,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(error);
+
+    res.status(500).json({
+      error: error.message,
+    });
   }
 };
 
 module.exports = {
   createProduct,
-  getAllProducts,
+  getPublicProducts,
   getProductById,
   updateProduct,
   deleteProduct,
