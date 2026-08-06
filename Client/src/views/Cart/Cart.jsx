@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   removeFromCart,
   increaseQty,
@@ -19,15 +19,43 @@ const Cart = () => {
 
   const items = useSelector((state) => state.cart.items);
 
-  const total = items.reduce(
+  const [selectedItems, setSelectedItems] = useState(() =>
+    Object.fromEntries(items.map((item) => [item.id, item.stock > 0])),
+  );
+
+  useEffect(() => {
+    setSelectedItems((prev) => {
+      const updated = {};
+
+      items.forEach((item) => {
+        updated[item.id] =
+          prev[item.id] !== undefined
+            ? prev[item.id] && item.stock > 0
+            : item.stock > 0;
+      });
+
+      return updated;
+    });
+  }, [items]);
+
+  const purchasableItems = items.filter((item) => selectedItems[item.id]);
+
+  const total = purchasableItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
 
+const hasUnavailableProducts =
+    items.some(item => item.stock <= 0);
+
+  const canBuy =
+    purchasableItems.length > 0 &&
+    !items.some(item => item.stock <= 0);
+
   const handleBuy = async () => {
     try {
       const res = await api.post("/payment/create-preference", {
-        items,
+        items: purchasableItems,
       });
 
       window.location.href = res.data.init_point;
@@ -57,25 +85,45 @@ const Cart = () => {
 
         {items.map((item) => (
           <div className={styles.card} key={item.id}>
+            {item.stock <= 0 && (
+              <div className={styles.outOfStock}>SIN STOCK</div>
+            )}
             <img src={item.imageUrl?.[0] || item.image} alt={item.title} />
 
             <div className={styles.info}>
               <h3>{item.title}</h3>
+              <label className={styles.checkbox}>
+                <input
+                  type="checkbox"
+                  checked={selectedItems[item.id] || false}
+                  disabled={item.stock <= 0}
+                  onChange={(e) =>
+                    setSelectedItems((prev) => ({
+                      ...prev,
+                      [item.id]: e.target.checked,
+                    }))
+                  }
+                />
+                Incluir en la compra
+              </label>
               <div className={styles.unitPrice}>
                 Precio unitario: ${item.price}
               </div>
               <div className={styles.stock}>Stock disponible: {item.stock}</div>
 
               <div className={styles.qty}>
-                <button onClick={() => dispatch(decreaseQty(item.id))}>
+                <button
+                  disabled={item.stock <= 0}
+                  onClick={() => dispatch(decreaseQty(item.id))}
+                >
                   -
                 </button>
 
                 <span>{item.quantity}</span>
 
                 <button
+                  disabled={item.stock <= 0 || item.quantity >= item.stock}
                   onClick={() => dispatch(increaseQty(item.id))}
-                  disabled={item.quantity >= item.stock}
                 >
                   +
                 </button>
@@ -110,9 +158,18 @@ const Cart = () => {
           </button>
 
           <h2>Total: ${total}</h2>
-
+          {hasUnavailableProducts && (
+            <p className={styles.stockWarning}>
+              Hay productos sin stock. Eliminalos del carrito para poder
+              continuar con la compra.
+            </p>
+          )}
           <div className={styles.footerActions}>
-            <button className={styles.buyBtn} onClick={handleBuy}>
+            <button
+              className={styles.buyBtn}
+              onClick={handleBuy}
+              disabled={!canBuy}
+            >
               Finalizar Compra
             </button>
 

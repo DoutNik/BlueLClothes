@@ -350,6 +350,14 @@
   cursor: pointer;
 }
 
+.buyBtn:disabled{
+    background:#555;
+    cursor:not-allowed;
+    opacity:.5;
+    box-shadow:none;
+    transform:none;
+}
+
 .clearBtn {
   background: #d32f2f;
   color: white;
@@ -482,6 +490,45 @@
   box-shadow:
     0 0 15px rgba(255, 0, 200, 0.5),
     0 0 25px rgba(63, 149, 219, 0.4);
+}
+
+.outOfStock{
+    position:absolute;
+    top:15px;
+    right:15px;
+    background:#ff2020;
+    color:white;
+    font-weight:bold;
+    padding:8px 18px;
+    border-radius:8px;
+    z-index:5;
+    letter-spacing:1px;
+}
+
+.stockWarning{
+    color:#ff4444;
+    font-size:18px;
+    font-weight:bold;
+    margin:15px 0;
+}
+
+.checkbox{
+    color:white;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin:10px 0;
+}
+
+.checkbox input{
+    accent-color:#ff00cc;
+}
+
+.unitPrice {
+  font-size: 1rem;
+  font-weight: 400;
+  color: white;
+  margin-bottom: 8px;
 }
 
 /* TABLET */
@@ -681,13 +728,9 @@
   }
 
 .unitPrice {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #ffffff;
-
-  text-shadow:
-    0 0 8px rgba(255,255,255,.3);
-
+  font-size: 1rem;
+  font-weight: 400;
+  color: white;
   margin-bottom: 8px;
 }
   .subtotal {
