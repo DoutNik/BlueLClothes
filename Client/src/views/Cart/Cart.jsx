@@ -23,20 +23,24 @@ const Cart = () => {
     Object.fromEntries(items.map((item) => [item.id, item.stock > 0])),
   );
 
-  useEffect(() => {
-    setSelectedItems((prev) => {
-      const updated = {};
+useEffect(() => {
+  setSelectedItems((prev) => {
+    const updated = {};
 
-      items.forEach((item) => {
+    items.forEach((item) => {
+      // Si antes existía y ahora se quedó sin stock,
+      // lo desmarco automáticamente.
+      if (item.stock <= 0) {
+        updated[item.id] = false;
+      } else {
         updated[item.id] =
-          prev[item.id] !== undefined
-            ? prev[item.id] && item.stock > 0
-            : item.stock > 0;
-      });
-
-      return updated;
+          prev[item.id] !== undefined ? prev[item.id] : true;
+      }
     });
-  }, [items]);
+
+    return updated;
+  });
+}, [items]);
 
   const purchasableItems = items.filter((item) => selectedItems[item.id]);
 
@@ -45,12 +49,13 @@ const Cart = () => {
     0,
   );
 
-const hasUnavailableProducts =
-    items.some(item => item.stock <= 0);
+const hasUnavailableProducts = items.some(
+  (item) => item.stock <= 0 && selectedItems[item.id]
+);
 
-  const canBuy =
-    purchasableItems.length > 0 &&
-    !items.some(item => item.stock <= 0);
+const canBuy =
+  purchasableItems.length > 0 &&
+  !hasUnavailableProducts;
 
   const handleBuy = async () => {
     try {
@@ -96,7 +101,6 @@ const hasUnavailableProducts =
                 <input
                   type="checkbox"
                   checked={selectedItems[item.id] || false}
-                  disabled={item.stock <= 0}
                   onChange={(e) =>
                     setSelectedItems((prev) => ({
                       ...prev,
