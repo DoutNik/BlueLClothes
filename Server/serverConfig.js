@@ -69,7 +69,7 @@ io.on("connection", (socket) => {
   });
 });
 
-cron.schedule("*/5 * * * *", () => {
+cron.schedule("*/30 * * * *", () => {
   clearAbandonedOrders(io);
 });
 
