@@ -160,6 +160,7 @@ const ProductManagement = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.stickyHeader}>
       <h1 className={styles.title}>Gestión de Productos</h1>
 
       {/* NAVBAR SECUNDARIA */}
@@ -183,6 +184,7 @@ const ProductManagement = () => {
           ⏸️ Pausados
           <span>{pausedProducts.length}</span>
         </button>
+      </div>
       </div>
 
       {/* READY */}
