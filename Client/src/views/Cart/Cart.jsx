@@ -21,58 +21,49 @@ const Cart = () => {
 
   const items = useSelector((state) => state.cart.items);
 
+    useEffect(() => {
+  dispatch(getProducts());
+}, [dispatch]);
+
   const [selectedItems, setSelectedItems] = useState(() =>
     Object.fromEntries(items.map((item) => [item.id, item.stock > 0])),
   );
 
-  useEffect(() => {
-  dispatch(getProducts());
-}, [dispatch]);
-
 useEffect(() => {
-  setSelectedItems((prev) => {
-    const updated = {};
+  const refreshCartStock = async () => {
+    if (!items.length) return;
 
-    items.forEach((item) => {
-      // Si antes existía y ahora se quedó sin stock,
-      // lo desmarco automáticamente.
-      if (item.stock <= 0) {
-        updated[item.id] = false;
-      } else {
-        updated[item.id] =
-          prev[item.id] !== undefined ? prev[item.id] : true;
-      }
-    });
-
-    return updated;
-  });
-}, [items]);
-
-useEffect(() => {
-  const updateCartStock = async () => {
     try {
       const updatedItems = await Promise.all(
         items.map(async (item) => {
-          const res = await api.get(`/products/${item.id}`);
+          try {
+            const res = await api.get(`/products/${item.id}`);
 
-          return {
-            ...item,
-            stock: res.data.stock,
-          };
+            return {
+              ...item,
+              stock: res.data.stock,
+            };
+          } catch (error) {
+            console.error(
+              `Error obteniendo stock del producto ${item.id}:`,
+              error,
+            );
+
+            return item;
+          }
         }),
       );
 
-      // Acá necesitamos actualizar Redux
-      console.log("Stock actualizado:", updatedItems);
+      console.log("Stock actualizado desde backend:", updatedItems);
+
+      dispatch(updateCartStock(updatedItems));
     } catch (error) {
       console.error("Error actualizando stock del carrito:", error);
     }
   };
 
-  if (items.length > 0) {
-    updateCartStock();
-  }
-}, []);
+  refreshCartStock();
+}, [dispatch, items.length]);
 
   const purchasableItems = items.filter((item) => selectedItems[item.id]);
 

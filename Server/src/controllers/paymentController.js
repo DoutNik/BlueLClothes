@@ -4,7 +4,6 @@ const { Order, OrderItem, Product } = require("../DB_config");
 
 const sendNotification = require("../utils/SendNotification");
 
-
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
 });
@@ -61,14 +60,11 @@ const createPreference = async (req, res) => {
         external_reference: String(order.id),
 
         back_urls: {
-          success:
-            "http://localhost:5173/payment-success",
+          success: "http://localhost:5173/payment-success",
 
-          failure:
-            "http://localhost:5173/payment-failure",
+          failure: "http://localhost:5173/payment-failure",
 
-          pending:
-            "http://localhost:5173/payment-pending",
+          pending: "http://localhost:5173/payment-pending",
         },
 
         //auto_return: "approved",
@@ -84,17 +80,17 @@ const createPreference = async (req, res) => {
       sandbox_init_point: result.sandbox_init_point,
     });
   } catch (error) {
-  console.error("ERROR CREATE PREFERENCE");
-  console.error(error);
+    console.error("ERROR CREATE PREFERENCE");
+    console.error(error);
 
-  if (error.response) {
-    console.error(error.response.data);
+    if (error.response) {
+      console.error(error.response.data);
+    }
+
+    res.status(500).json({
+      error: error.message,
+    });
   }
-
-  res.status(500).json({
-    error: error.message,
-  });
-}
 };
 
 const webhook = async (req, res) => {
@@ -316,9 +312,7 @@ const webhook = async (req, res) => {
         const product = await Product.findByPk(item.productId);
 
         if (!product) {
-          console.log(
-            `Producto ${item.productId} no encontrado. Se continúa.`,
-          );
+          console.log(`Producto ${item.productId} no encontrado. Se continúa.`);
 
           continue;
         }
@@ -331,12 +325,14 @@ const webhook = async (req, res) => {
 
         const previousStock = product.stock;
 
-        product.stock = Math.max(
-          0,
-          product.stock - item.quantity,
-        );
+        product.stock = Math.max(0, product.stock - item.quantity);
 
         await product.save();
+
+        req.io.emit("stock_updated", {
+          productId: product.id,
+          stock: product.stock,
+        });
 
         console.log(
           `Stock actualizado: ${product.title} | ${previousStock} → ${product.stock}`,
@@ -358,13 +354,9 @@ const webhook = async (req, res) => {
               type: "warning",
             });
 
-            console.log(
-              `Notificación de stock bajo enviada: ${product.title}`,
-            );
+            console.log(`Notificación de stock bajo enviada: ${product.title}`);
           } catch (error) {
-            console.log(
-              "Error enviando notificación de stock bajo:",
-            );
+            console.log("Error enviando notificación de stock bajo:");
             console.log(error);
           }
         }
@@ -403,9 +395,7 @@ const webhook = async (req, res) => {
               `Notificación de producto agotado enviada: ${product.title}`,
             );
           } catch (error) {
-            console.log(
-              "Error procesando producto agotado:",
-            );
+            console.log("Error procesando producto agotado:");
             console.log(error);
           }
         }
@@ -414,15 +404,13 @@ const webhook = async (req, res) => {
       console.log("=================================");
       console.log("Webhook procesado correctamente.");
       console.log("=================================");
-    }
+    } else if (payment.status === "rejected") {
 
     /*
     |--------------------------------------------------------------------------
     | 10. PAGO RECHAZADO
     |--------------------------------------------------------------------------
     */
-
-    else if (payment.status === "rejected") {
       console.log("Pago rechazado.");
 
       order.status = "rejected";
@@ -446,9 +434,7 @@ const webhook = async (req, res) => {
 
         console.log("Notificación de pago rechazado enviada al admin.");
       } catch (error) {
-        console.log(
-          "Error enviando notificación de pago rechazado al admin:",
-        );
+        console.log("Error enviando notificación de pago rechazado al admin:");
         console.log(error);
       }
 
@@ -468,9 +454,7 @@ const webhook = async (req, res) => {
             type: "error",
           });
 
-          console.log(
-            "Notificación de pago rechazado enviada al usuario.",
-          );
+          console.log("Notificación de pago rechazado enviada al usuario.");
         } catch (error) {
           console.log(
             "Error enviando notificación de pago rechazado al usuario:",
@@ -478,7 +462,7 @@ const webhook = async (req, res) => {
           console.log(error);
         }
       }
-    }
+    } else {
 
     /*
     |--------------------------------------------------------------------------
@@ -493,11 +477,7 @@ const webhook = async (req, res) => {
     | No modificamos nuestra orden todavía.
     |
     */
-
-    else {
-      console.log(
-        `Estado de pago no procesado: ${payment.status}`,
-      );
+      console.log(`Estado de pago no procesado: ${payment.status}`);
     }
 
     console.log("========== FIN WEBHOOK ==========");

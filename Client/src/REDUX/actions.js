@@ -39,13 +39,13 @@ export const getProducts = () => {
         ? res.data
         : res.data.products || [];
 
-      // Actualizar productos de la tienda
+      // Actualiza ProductGrid
       dispatch({
         type: GET_PRODUCTS_SUCCESS,
         payload: products,
       });
 
-      // Actualizar stock de los productos que ya están en el carrito
+      // Actualiza el stock del carrito
       dispatch({
         type: UPDATE_CART_STOCK,
         payload: products,
