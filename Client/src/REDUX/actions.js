@@ -24,6 +24,7 @@ import {
   MARK_ALL_NOTIFICATIONS_READ,
   DELETE_NOTIFICATION,
   SET_SEARCH,
+  UPDATE_CART_STOCK,
 } from "./actionTypes";
 
 /* PRODUCTS */
@@ -38,10 +39,18 @@ export const getProducts = () => {
         ? res.data
         : res.data.products || [];
 
+      // Actualizar productos de la tienda
       dispatch({
         type: GET_PRODUCTS_SUCCESS,
         payload: products,
       });
+
+      // Actualizar stock de los productos que ya están en el carrito
+      dispatch({
+        type: UPDATE_CART_STOCK,
+        payload: products,
+      });
+
     } catch (error) {
       dispatch({
         type: GET_PRODUCTS_FAILURE,
@@ -206,3 +215,8 @@ export const setSearch = (value) => {
     payload: value,
   };
 };
+
+export const updateCartStock = (items) => ({
+  type: "UPDATE_CART_STOCK",
+  payload: items,
+});

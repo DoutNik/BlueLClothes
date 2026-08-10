@@ -2,10 +2,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
+  updateCartStock,
   removeFromCart,
   increaseQty,
   decreaseQty,
   clearCart,
+  getProducts
 } from "../../REDUX/actions";
 import api from "../../api/api";
 import backgroundImage from "../../assets/backgroundImage.jpg";
@@ -22,6 +24,10 @@ const Cart = () => {
   const [selectedItems, setSelectedItems] = useState(() =>
     Object.fromEntries(items.map((item) => [item.id, item.stock > 0])),
   );
+
+  useEffect(() => {
+  dispatch(getProducts());
+}, [dispatch]);
 
 useEffect(() => {
   setSelectedItems((prev) => {
@@ -41,6 +47,32 @@ useEffect(() => {
     return updated;
   });
 }, [items]);
+
+useEffect(() => {
+  const updateCartStock = async () => {
+    try {
+      const updatedItems = await Promise.all(
+        items.map(async (item) => {
+          const res = await api.get(`/products/${item.id}`);
+
+          return {
+            ...item,
+            stock: res.data.stock,
+          };
+        }),
+      );
+
+      // Acá necesitamos actualizar Redux
+      console.log("Stock actualizado:", updatedItems);
+    } catch (error) {
+      console.error("Error actualizando stock del carrito:", error);
+    }
+  };
+
+  if (items.length > 0) {
+    updateCartStock();
+  }
+}, []);
 
   const purchasableItems = items.filter((item) => selectedItems[item.id]);
 

@@ -2,7 +2,7 @@ const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 
 const { Order, OrderItem, Product } = require("../DB_config");
 
-const { sendNotification } = require("../utils/SendNotification");
+const sendNotification = require("../utils/SendNotification");
 
 
 const client = new MercadoPagoConfig({
@@ -103,11 +103,36 @@ const webhook = async (req, res) => {
     console.log("Body recibido:");
     console.log(JSON.stringify(req.body, null, 2));
 
-    // Mercado Pago puede enviar distintos tipos de eventos.
-    if (req.body.type !== "payment") {
-      console.log("Evento ignorado:", req.body.type);
+    /*
+    |--------------------------------------------------------------------------
+    | 1. IDENTIFICAR EL TIPO DE EVENTO
+    |--------------------------------------------------------------------------
+    |
+    | Mercado Pago puede enviar:
+    | - payment
+    | - merchant_order
+    | - otros eventos
+    |
+    | Para nuestro sistema solamente necesitamos procesar "payment",
+    | porque desde el pago obtenemos:
+    | - payment.id
+    | - payment.status
+    | - payment.external_reference
+    |
+    */
+
+    const eventType = req.body?.type;
+
+    if (eventType !== "payment") {
+      console.log("Evento ignorado:", eventType);
       return res.sendStatus(200);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. OBTENER PAYMENT ID
+    |--------------------------------------------------------------------------
+    */
 
     const paymentId = req.body?.data?.id;
 
@@ -118,19 +143,33 @@ const webhook = async (req, res) => {
 
     console.log("Payment ID:", paymentId);
 
-    // Buscar el pago en Mercado Pago
+    /*
+    |--------------------------------------------------------------------------
+    | 3. CONSULTAR EL PAGO DIRECTAMENTE A MERCADO PAGO
+    |--------------------------------------------------------------------------
+    |
+    | No confiamos únicamente en lo que viene en el webhook.
+    | Consultamos la API de Mercado Pago para obtener el estado real.
+    |
+    */
+
     const paymentResponse = await paymentClient.get({
       id: paymentId,
     });
 
-    console.log("Respuesta de Mercado Pago:");
-    console.log(JSON.stringify(paymentResponse, null, 2));
-
-    // Compatible con distintas versiones del SDK
     const payment = paymentResponse.body || paymentResponse;
+
+    console.log("Respuesta de Mercado Pago:");
+    console.log(JSON.stringify(payment, null, 2));
 
     console.log("Status:", payment.status);
     console.log("External Reference:", payment.external_reference);
+
+    /*
+    |--------------------------------------------------------------------------
+    | 4. OBTENER ID DE NUESTRA ORDEN
+    |--------------------------------------------------------------------------
+    */
 
     const orderId = payment.external_reference;
 
@@ -138,6 +177,12 @@ const webhook = async (req, res) => {
       console.log("El pago no tiene external_reference");
       return res.sendStatus(200);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 5. BUSCAR ORDEN
+    |--------------------------------------------------------------------------
+    */
 
     const order = await Order.findByPk(orderId, {
       include: [
@@ -154,24 +199,61 @@ const webhook = async (req, res) => {
     }
 
     console.log(
-      `Orden encontrada #${order.id} - Estado actual: ${order.status}`
+      `Orden encontrada #${order.id} - Estado actual: ${order.status}`,
     );
 
-    if (order.status === "expired") {
-      console.log("La orden está expirada");
-      return res.sendStatus(200);
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | 6. EVITAR PROCESAR DOS VECES LA MISMA ORDEN
+    |--------------------------------------------------------------------------
+    |
+    | Mercado Pago puede enviar el mismo webhook varias veces.
+    |
+    | Si la orden ya está aprobada, no debemos:
+    | - descontar stock nuevamente
+    | - enviar nuevamente notificaciones
+    |
+    */
 
     if (order.status === "approved") {
-      console.log("La orden ya estaba aprobada");
+      console.log("La orden ya estaba aprobada. Evento ignorado.");
       return res.sendStatus(200);
     }
 
-    // ===========================
-    // PAGO APROBADO
-    // ===========================
+    /*
+    |--------------------------------------------------------------------------
+    | 7. SI LA ORDEN ESTÁ EXPIRADA
+    |--------------------------------------------------------------------------
+    |
+    | No permitimos aprobar una orden que nuestro sistema ya marcó
+    | como abandonada/expirada.
+    |
+    */
+
+    if (order.status === "expired") {
+      console.log(
+        `La orden #${order.id} está expirada. No se procesará el pago.`,
+      );
+
+      return res.sendStatus(200);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 8. PAGO APROBADO
+    |--------------------------------------------------------------------------
+    */
+
     if (payment.status === "approved") {
-      console.log("Aprobando orden...");
+      console.log("=================================");
+      console.log("PAGO APROBADO");
+      console.log("=================================");
+
+      /*
+      |--------------------------------------------------------------------------
+      | Actualizar orden
+      |--------------------------------------------------------------------------
+      */
 
       order.status = "approved";
       order.paymentId = String(payment.id);
@@ -179,6 +261,12 @@ const webhook = async (req, res) => {
       await order.save();
 
       console.log("Orden actualizada correctamente.");
+
+      /*
+      |--------------------------------------------------------------------------
+      | NOTIFICACIÓN AL ADMIN
+      |--------------------------------------------------------------------------
+      */
 
       try {
         await sendNotification({
@@ -188,10 +276,18 @@ const webhook = async (req, res) => {
           message: `Nueva compra #${order.id} por $${order.total}`,
           type: "sale",
         });
-      } catch (e) {
-        console.log("Error enviando notificación admin");
-        console.log(e);
+
+        console.log("Notificación de venta enviada al admin.");
+      } catch (error) {
+        console.log("Error enviando notificación al admin:");
+        console.log(error);
       }
+
+      /*
+      |--------------------------------------------------------------------------
+      | NOTIFICACIÓN AL USUARIO
+      |--------------------------------------------------------------------------
+      */
 
       if (order.userId) {
         try {
@@ -199,109 +295,224 @@ const webhook = async (req, res) => {
             io: req.io,
             userId: order.userId,
             title: "Pago aprobado",
-            message: `Tu pedido #${order.id} fue aprobado`,
+            message: `Tu pedido #${order.id} fue aprobado.`,
             type: "success",
           });
-        } catch (e) {
-          console.log("Error enviando notificación usuario");
-          console.log(e);
+
+          console.log("Notificación de pago enviada al usuario.");
+        } catch (error) {
+          console.log("Error enviando notificación al usuario:");
+          console.log(error);
         }
       }
+
+      /*
+      |--------------------------------------------------------------------------
+      | 9. DESCONTAR STOCK
+      |--------------------------------------------------------------------------
+      */
 
       for (const item of order.OrderItems) {
         const product = await Product.findByPk(item.productId);
 
-        if (!product) continue;
+        if (!product) {
+          console.log(
+            `Producto ${item.productId} no encontrado. Se continúa.`,
+          );
 
-        product.stock -= item.quantity;
-
-        if (product.stock < 0) {
-          product.stock = 0;
+          continue;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Descontar stock
+        |--------------------------------------------------------------------------
+        */
+
+        const previousStock = product.stock;
+
+        product.stock = Math.max(
+          0,
+          product.stock - item.quantity,
+        );
 
         await product.save();
 
-        if (product.stock <= 3 && product.stock > 0) {
+        console.log(
+          `Stock actualizado: ${product.title} | ${previousStock} → ${product.stock}`,
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | STOCK BAJO
+        |--------------------------------------------------------------------------
+        */
+
+        if (product.stock > 0 && product.stock <= 3) {
           try {
             await sendNotification({
               io: req.io,
               roleTarget: "admin",
               title: "Stock bajo",
-              message: `${product.title} tiene poco stock`,
+              message: `${product.title} tiene solo ${product.stock} unidades disponibles.`,
               type: "warning",
             });
-          } catch (e) {
-            console.log(e);
+
+            console.log(
+              `Notificación de stock bajo enviada: ${product.title}`,
+            );
+          } catch (error) {
+            console.log(
+              "Error enviando notificación de stock bajo:",
+            );
+            console.log(error);
           }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | PRODUCTO AGOTADO
+        |--------------------------------------------------------------------------
+        */
+
         if (product.stock === 0) {
           try {
+            /*
+            | Si el producto queda sin stock,
+            | lo pausamos automáticamente.
+            */
+
+            product.isActive = false;
             product.status = "paused";
+
             await product.save();
+
+            console.log(
+              `Producto pausado automáticamente por falta de stock: ${product.title}`,
+            );
+
             await sendNotification({
               io: req.io,
               roleTarget: "admin",
               title: "Producto agotado",
-              message: `${product.title} se quedó sin stock y fue pausado`,
+              message: `${product.title} se quedó sin stock y fue pausado automáticamente.`,
               type: "error",
             });
-          } catch (e) {
-            console.log(e);
+
+            console.log(
+              `Notificación de producto agotado enviada: ${product.title}`,
+            );
+          } catch (error) {
+            console.log(
+              "Error procesando producto agotado:",
+            );
+            console.log(error);
           }
         }
       }
 
+      console.log("=================================");
       console.log("Webhook procesado correctamente.");
+      console.log("=================================");
     }
 
-    // ===========================
-    // PAGO RECHAZADO
-    // ===========================
-    if (payment.status === "rejected") {
-      console.log("Pago rechazado");
+    /*
+    |--------------------------------------------------------------------------
+    | 10. PAGO RECHAZADO
+    |--------------------------------------------------------------------------
+    */
+
+    else if (payment.status === "rejected") {
+      console.log("Pago rechazado.");
 
       order.status = "rejected";
 
       await order.save();
+
+      /*
+      |--------------------------------------------------------------------------
+      | Notificación admin
+      |--------------------------------------------------------------------------
+      */
 
       try {
         await sendNotification({
           io: req.io,
           roleTarget: "admin",
           title: "Pago rechazado",
-          message: `Pedido #${order.id} rechazado`,
+          message: `Pedido #${order.id} rechazado.`,
           type: "error",
         });
-      } catch (e) {
-        console.log(e);
+
+        console.log("Notificación de pago rechazado enviada al admin.");
+      } catch (error) {
+        console.log(
+          "Error enviando notificación de pago rechazado al admin:",
+        );
+        console.log(error);
       }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Notificación usuario
+      |--------------------------------------------------------------------------
+      */
 
       if (order.userId) {
         try {
           await sendNotification({
-            io,
+            io: req.io,
             userId: order.userId,
             title: "Pago rechazado",
-            message: "Tu pago fue rechazado",
+            message: `Tu pago del pedido #${order.id} fue rechazado.`,
             type: "error",
           });
-        } catch (e) {
-          console.log(e);
+
+          console.log(
+            "Notificación de pago rechazado enviada al usuario.",
+          );
+        } catch (error) {
+          console.log(
+            "Error enviando notificación de pago rechazado al usuario:",
+          );
+          console.log(error);
         }
       }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 11. OTROS ESTADOS
+    |--------------------------------------------------------------------------
+    |
+    | pending
+    | in_process
+    | cancelled
+    | etc.
+    |
+    | No modificamos nuestra orden todavía.
+    |
+    */
+
+    else {
+      console.log(
+        `Estado de pago no procesado: ${payment.status}`,
+      );
     }
 
     console.log("========== FIN WEBHOOK ==========");
 
     return res.sendStatus(200);
   } catch (error) {
-    console.log("ERROR EN WEBHOOK");
+    console.log("========== ERROR EN WEBHOOK ==========");
     console.log(error);
 
     if (error.response) {
+      console.log("Respuesta del servidor:");
       console.log(error.response);
     }
+
+    console.log("======================================");
 
     return res.sendStatus(500);
   }

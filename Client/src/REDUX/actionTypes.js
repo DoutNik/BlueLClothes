@@ -46,3 +46,4 @@ export const SET_SORT = "SET_SORT";
 
 export const CLEAR_FILTERS = "CLEAR_FILTERS";
 
+export const UPDATE_CART_STOCK = "UPDATE_CART_STOCK";

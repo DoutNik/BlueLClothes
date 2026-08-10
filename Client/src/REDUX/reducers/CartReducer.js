@@ -4,6 +4,7 @@ import {
   INCREASE_QTY,
   DECREASE_QTY,
   CLEAR_CART,
+  UPDATE_CART_STOCK,
 } from "../actionTypes";
 
 const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -43,16 +44,25 @@ const cartReducer = (state = initialState, action) => {
 
       return { ...state, items: updatedItems };
 
-    case INCREASE_QTY:
-      updatedItems = state.items.map((item) =>
-        item.id === action.payload
-          ? { ...item, quantity: item.quantity + 1 }
-          : item,
-      );
+case INCREASE_QTY:
+  updatedItems = state.items.map((item) =>
+    item.id === action.payload
+      ? {
+          ...item,
+          quantity:
+            item.quantity < item.stock
+              ? item.quantity + 1
+              : item.quantity,
+        }
+      : item,
+  );
 
-      localStorage.setItem("cart", JSON.stringify(updatedItems));
+  localStorage.setItem("cart", JSON.stringify(updatedItems));
 
-      return { ...state, items: updatedItems };
+  return {
+    ...state,
+    items: updatedItems,
+  };
 
     case DECREASE_QTY:
       updatedItems = state.items.map((item) =>
@@ -70,6 +80,28 @@ const cartReducer = (state = initialState, action) => {
         ...state,
         items: updatedItems,
       };
+
+    case UPDATE_CART_STOCK: {
+      const updatedItems = state.items.map((item) => {
+        const updatedItem = action.payload.find(
+          (updated) => updated.id === item.id,
+        );
+
+        return updatedItem
+          ? {
+              ...item,
+              stock: updatedItem.stock,
+            }
+          : item;
+      });
+
+      localStorage.setItem("cart", JSON.stringify(updatedItems));
+
+      return {
+        ...state,
+        items: updatedItems,
+      };
+    }
 
     case CLEAR_CART:
       localStorage.removeItem("cart");
