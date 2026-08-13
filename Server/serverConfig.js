@@ -14,7 +14,9 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -22,12 +24,18 @@ const io = new Server(httpServer, {
 
 app.set("io", io);
 
+// ============================================================
+// SOCKET.IO DISPONIBLE EN LOS CONTROLLERS
+// ============================================================
+
 app.use((req, res, next) => {
-
   req.io = io;
-
   next();
 });
+
+// ============================================================
+// MIDDLEWARES
+// ============================================================
 
 const morgan = require("morgan");
 const cors = require("cors");
@@ -38,10 +46,16 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://draconic-syndetically-kaci.ngrok-free.dev"],
+    origin: [
+      "http://localhost:5173",
+    ],
     credentials: true,
-  }),
+  })
 );
+
+// ============================================================
+// SOCKET.IO
+// ============================================================
 
 io.on("connection", (socket) => {
   console.log("🔌 Usuario conectado:", socket.id);
@@ -61,20 +75,33 @@ io.on("connection", (socket) => {
   socket.on("join_user", (userId) => {
     socket.join(`user_${userId}`);
 
-    console.log(`👤 User conectado ${userId}`);
+    console.log(
+      `👤 User conectado ${userId}`
+    );
   });
 
   socket.on("disconnect", () => {
-    console.log("❌ Usuario desconectado");
+    console.log(
+      "❌ Usuario desconectado"
+    );
   });
 });
 
-cron.schedule("*/30 * * * *", () => {
+// ============================================================
+// EXPIRACIÓN DE RESERVAS
+// ============================================================
+
+
+cron.schedule("*/5 * * * *", () => {
   clearAbandonedOrders(io);
 });
+
+// ============================================================
+// ROUTES
+// ============================================================
 
 app.use(router);
 
 module.exports = {
-  httpServer
+  httpServer,
 };

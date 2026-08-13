@@ -33,6 +33,11 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      reservedStock: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+      },
       colors: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         defaultValue: [],
@@ -46,7 +51,13 @@ module.exports = (sequelize) => {
         defaultValue: true,
       },
       status: {
-        type: DataTypes.ENUM("draft", "ready", "published", "archived", "paused"),
+        type: DataTypes.ENUM(
+          "draft",
+          "ready",
+          "published",
+          "archived",
+          "paused",
+        ),
         defaultValue: "draft",
       },
     },

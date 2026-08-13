@@ -7,7 +7,7 @@ import {
   increaseQty,
   decreaseQty,
   clearCart,
-  getProducts
+  getProducts,
 } from "../../REDUX/actions";
 import api from "../../api/api";
 import backgroundImage from "../../assets/backgroundImage.jpg";
@@ -21,49 +21,49 @@ const Cart = () => {
 
   const items = useSelector((state) => state.cart.items);
 
-    useEffect(() => {
-  dispatch(getProducts());
-}, [dispatch]);
+  useEffect(() => {
+    dispatch(getProducts());
+  }, [dispatch]);
 
   const [selectedItems, setSelectedItems] = useState(() =>
     Object.fromEntries(items.map((item) => [item.id, item.stock > 0])),
   );
 
-useEffect(() => {
-  const refreshCartStock = async () => {
-    if (!items.length) return;
+  useEffect(() => {
+    const refreshCartStock = async () => {
+      if (!items.length) return;
 
-    try {
-      const updatedItems = await Promise.all(
-        items.map(async (item) => {
-          try {
-            const res = await api.get(`/products/${item.id}`);
+      try {
+        const updatedItems = await Promise.all(
+          items.map(async (item) => {
+            try {
+              const res = await api.get(`/products/${item.id}`);
 
-            return {
-              ...item,
-              stock: res.data.stock,
-            };
-          } catch (error) {
-            console.error(
-              `Error obteniendo stock del producto ${item.id}:`,
-              error,
-            );
+              return {
+                ...item,
+                stock: res.data.stock,
+              };
+            } catch (error) {
+              console.error(
+                `Error obteniendo stock del producto ${item.id}:`,
+                error,
+              );
 
-            return item;
-          }
-        }),
-      );
+              return item;
+            }
+          }),
+        );
 
-      console.log("Stock actualizado desde backend:", updatedItems);
+        console.log("Stock actualizado desde backend:", updatedItems);
 
-      dispatch(updateCartStock(updatedItems));
-    } catch (error) {
-      console.error("Error actualizando stock del carrito:", error);
-    }
-  };
+        dispatch(updateCartStock(updatedItems));
+      } catch (error) {
+        console.error("Error actualizando stock del carrito:", error);
+      }
+    };
 
-  refreshCartStock();
-}, [dispatch, items.length]);
+    refreshCartStock();
+  }, [dispatch, items.length]);
 
   const purchasableItems = items.filter((item) => selectedItems[item.id]);
 
@@ -72,13 +72,11 @@ useEffect(() => {
     0,
   );
 
-const hasUnavailableProducts = items.some(
-  (item) => item.stock <= 0 && selectedItems[item.id]
-);
+  const hasUnavailableProducts = items.some(
+    (item) => item.stock <= 0 && selectedItems[item.id],
+  );
 
-const canBuy =
-  purchasableItems.length > 0 &&
-  !hasUnavailableProducts;
+  const canBuy = purchasableItems.length > 0 && !hasUnavailableProducts;
 
   const handleBuy = async () => {
     try {
@@ -86,7 +84,13 @@ const canBuy =
         items: purchasableItems,
       });
 
-      window.location.href = res.data.init_point;
+      const paymentWindow = window.open(res.data.init_point, "_blank");
+
+      if (!paymentWindow) {
+        alert(
+          "El navegador bloqueó la ventana de Mercado Pago. Permití las ventanas emergentes para continuar.",
+        );
+      }
     } catch (error) {
       console.log(error);
       alert("Error al iniciar pago");

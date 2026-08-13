@@ -246,6 +246,7 @@ const activateProduct = async (req, res) => {
     }
 
     product.isActive = true;
+    product.status = "published"; // Cambiar el estado a publicado al activar
     await product.save();
 
     if (product.status === "published") {

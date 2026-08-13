@@ -12,8 +12,16 @@ const preference = new Preference(client);
 const paymentClient = new Payment(client);
 
 const createPreference = async (req, res) => {
+  // La transacción se crea después, pero la declaramos
+  // para poder hacer rollback en cualquier punto.
+  let transaction;
+
   try {
     const { items } = req.body;
+
+    // ============================================================
+    // 1. VALIDAR CARRITO
+    // ============================================================
 
     if (!items?.length) {
       return res.status(400).json({
@@ -21,101 +29,320 @@ const createPreference = async (req, res) => {
       });
     }
 
-    // 🔥 TOTAL
-    const total = items.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0,
+    // Validación básica de cantidades e IDs
+    for (const item of items) {
+      if (!item.id || !Number.isInteger(Number(item.quantity))) {
+        return res.status(400).json({
+          error: "Producto o cantidad inválida",
+        });
+      }
+
+      if (Number(item.quantity) <= 0) {
+        return res.status(400).json({
+          error: "La cantidad debe ser mayor a 0",
+        });
+      }
+    }
+
+    // ============================================================
+    // 2. INICIAR TRANSACCIÓN
+    // ============================================================
+
+    transaction = await Order.sequelize.transaction();
+
+    // ============================================================
+    // 3. ORDENAR LOS PRODUCTOS
+    // ============================================================
+    //
+    // Esto ayuda a evitar deadlocks cuando dos usuarios compran
+    // varios productos al mismo tiempo.
+    //
+    // Ejemplo:
+    // Usuario A: producto 1 + producto 2
+    // Usuario B: producto 2 + producto 1
+    //
+    // Ambos los procesarán siempre en el mismo orden.
+    // ============================================================
+
+    const sortedItems = [...items].sort(
+      (a, b) => Number(a.id) - Number(b.id)
     );
 
-    // 🔥 CREAR ORDEN
-    const expirationDate = new Date(Date.now() + 1000 * 60 * 30);
+    // ============================================================
+    // 4. OBTENER PRODUCTOS CON LOCK
+    // ============================================================
+    //
+    // IMPORTANTE:
+    // No confiamos en el precio enviado por el frontend.
+    // El precio verdadero sale de nuestra base de datos.
+    //
+    // FOR UPDATE bloquea las filas hasta que termine la
+    // transacción.
+    // ============================================================
 
-    const order = await Order.create({
+    const products = {};
+
+    for (const item of sortedItems) {
+      const productId = Number(item.id);
+
+      const product = await Product.findByPk(productId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      if (!product) {
+        throw new Error(
+          `El producto ${productId} no existe`
+        );
+      }
+
+      // Si el producto está inactivo no permitimos comprarlo
+      if (!product.isActive) {
+        throw new Error(
+          `El producto "${product.title}" no está disponible`
+        );
+      }
+
+      products[productId] = product;
+    }
+
+    // ============================================================
+    // 5. COMPROBAR Y RESERVAR STOCK
+    // ============================================================
+    //
+    // Stock real:
+    //
+    // stock = cantidad física disponible
+    //
+    // reservedStock = cantidad actualmente reservada
+    //
+    // disponible = stock - reservedStock
+    //
+    // Ejemplo:
+    //
+    // stock = 10
+    // reservedStock = 7
+    //
+    // disponible = 3
+    //
+    // Si alguien compra 4 -> ERROR
+    // ============================================================
+
+    let total = 0;
+
+    for (const item of sortedItems) {
+      const product = products[Number(item.id)];
+
+      const quantity = Number(item.quantity);
+
+      const currentReservedStock =
+        Number(product.reservedStock) || 0;
+
+      const availableStock =
+        Number(product.stock) - currentReservedStock;
+
+      if (quantity > availableStock) {
+        throw new Error(
+          `No hay stock suficiente para "${product.title}". ` +
+            `Disponible: ${availableStock}`
+        );
+      }
+
+      // ==========================================================
+      // RESERVAR
+      // ==========================================================
+
+      product.reservedStock =
+        currentReservedStock + quantity;
+
+      await product.save({
+        transaction,
+      });
+
+      // ==========================================================
+      // CALCULAR TOTAL CON PRECIO DE LA BASE DE DATOS
+      // ==========================================================
+
+      total += Number(product.price) * quantity;
+    }
+
+    // ============================================================
+    // 6. CREAR ORDEN
+    // ============================================================
+
+    const expirationDate = new Date(
+      Date.now() + 1000 * 60 * 30
+    );
+
+    const orderData = {
       total,
       status: "pending",
       expiresAt: expirationDate,
-    });
+    };
 
-    // 🔥 ITEMS
-    for (const item of items) {
-      await OrderItem.create({
-        OrderId: order.id,
-        title: item.title,
-        quantity: item.quantity,
-        price: item.price,
-        productId: item.id,
-      });
+    // Si posteriormente agregamos userId al modelo Order,
+    // esto permitirá asociar la orden automáticamente.
+    if (req.user?.id) {
+      orderData.userId = req.user.id;
     }
 
-    // 🔥 PREFERENCE
+    const order = await Order.create(orderData, {
+      transaction,
+    });
+
+    // ============================================================
+    // 7. CREAR ORDER ITEMS
+    // ============================================================
+
+    for (const item of sortedItems) {
+      const product = products[Number(item.id)];
+
+      await OrderItem.create(
+        {
+          OrderId: order.id,
+          title: product.title,
+          quantity: Number(item.quantity),
+          price: Number(product.price),
+          productId: product.id,
+        },
+        {
+          transaction,
+        }
+      );
+    }
+
+    // ============================================================
+    // 8. CREAR PREFERENCE DE MERCADO PAGO
+    // ============================================================
+    //
+    // IMPORTANTE:
+    // También usamos los precios de nuestra DB.
+    // Nunca los del frontend.
+    // ============================================================
+
+    const preferenceItems = sortedItems.map((item) => {
+      const product = products[Number(item.id)];
+
+      return {
+        title: product.title,
+        quantity: Number(item.quantity),
+        unit_price: Number(product.price),
+        currency_id: "ARS",
+      };
+    });
+
     const result = await preference.create({
       body: {
-        items: items.map((item) => ({
-          title: item.title,
-          quantity: item.quantity,
-          unit_price: Number(item.price),
-          currency_id: "ARS",
-        })),
+        items: preferenceItems,
 
         external_reference: String(order.id),
 
         back_urls: {
-          success: "http://localhost:5173/payment-success",
+          success:
+            "http://localhost:5173/payment-success",
 
-          failure: "http://localhost:5173/payment-failure",
+          failure:
+            "http://localhost:5173/payment-failure",
 
-          pending: "http://localhost:5173/payment-pending",
+          pending:
+            "http://localhost:5173/payment-pending",
         },
 
-        //auto_return: "approved",
+        // Podés activarlo después si querés que Mercado Pago
+        // redirija automáticamente al volver del pago.
+        // auto_return: "approved",
 
         notification_url:
           "https://draconic-syndetically-kaci.ngrok-free.dev/payment/webhook",
       },
     });
 
-    res.json({
+    // ============================================================
+    // 9. CONFIRMAR TRANSACCIÓN
+    // ============================================================
+    //
+    // Hasta este punto:
+    //
+    // - stock NO bajó
+    // - reservedStock aumentó
+    // - Order = pending
+    // - OrderItems creados
+    // - Preference creada
+    //
+    // Ahora confirmamos todo.
+    // ============================================================
+
+    await transaction.commit();
+
+    transaction = null;
+
+    console.log("=================================");
+    console.log("ORDEN CREADA Y STOCK RESERVADO");
+    console.log("Orden:", order.id);
+    console.log("Total:", total);
+    console.log("Expira:", expirationDate);
+    console.log("=================================");
+
+    return res.json({
       id: result.id,
       init_point: result.init_point,
       sandbox_init_point: result.sandbox_init_point,
+      orderId: order.id,
     });
   } catch (error) {
-    console.error("ERROR CREATE PREFERENCE");
-    console.error(error);
+    // ============================================================
+    // 10. ROLLBACK
+    // ============================================================
+    //
+    // Si cualquier cosa falla:
+    //
+    // - no queda la Order
+    // - no quedan OrderItems
+    // - se libera reservedStock
+    //
+    // Esto es fundamental para no dejar stock bloqueado.
+    // ============================================================
 
-    if (error.response) {
-      console.error(error.response.data);
+    if (transaction) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error(
+          "Error haciendo rollback:",
+          rollbackError
+        );
+      }
     }
 
-    res.status(500).json({
-      error: error.message,
+    console.error("=================================");
+    console.error("ERROR CREATE PREFERENCE");
+    console.error(error);
+    console.error("=================================");
+
+    if (error.response) {
+      console.error(
+        "Respuesta Mercado Pago:",
+        error.response.data
+      );
+    }
+
+    return res.status(400).json({
+      error: error.message || "Error creando preferencia",
     });
   }
 };
 
 const webhook = async (req, res) => {
+  let transaction;
+
   try {
     console.log("========== WEBHOOK ==========");
     console.log("Body recibido:");
     console.log(JSON.stringify(req.body, null, 2));
 
-    /*
-    |--------------------------------------------------------------------------
-    | 1. IDENTIFICAR EL TIPO DE EVENTO
-    |--------------------------------------------------------------------------
-    |
-    | Mercado Pago puede enviar:
-    | - payment
-    | - merchant_order
-    | - otros eventos
-    |
-    | Para nuestro sistema solamente necesitamos procesar "payment",
-    | porque desde el pago obtenemos:
-    | - payment.id
-    | - payment.status
-    | - payment.external_reference
-    |
-    */
+    // ============================================================
+    // 1. IDENTIFICAR TIPO DE EVENTO
+    // ============================================================
 
     const eventType = req.body?.type;
 
@@ -124,11 +351,9 @@ const webhook = async (req, res) => {
       return res.sendStatus(200);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 2. OBTENER PAYMENT ID
-    |--------------------------------------------------------------------------
-    */
+    // ============================================================
+    // 2. OBTENER PAYMENT ID
+    // ============================================================
 
     const paymentId = req.body?.data?.id;
 
@@ -139,15 +364,9 @@ const webhook = async (req, res) => {
 
     console.log("Payment ID:", paymentId);
 
-    /*
-    |--------------------------------------------------------------------------
-    | 3. CONSULTAR EL PAGO DIRECTAMENTE A MERCADO PAGO
-    |--------------------------------------------------------------------------
-    |
-    | No confiamos únicamente en lo que viene en el webhook.
-    | Consultamos la API de Mercado Pago para obtener el estado real.
-    |
-    */
+    // ============================================================
+    // 3. CONSULTAR PAGO REAL A MERCADO PAGO
+    // ============================================================
 
     const paymentResponse = await paymentClient.get({
       id: paymentId,
@@ -159,26 +378,38 @@ const webhook = async (req, res) => {
     console.log(JSON.stringify(payment, null, 2));
 
     console.log("Status:", payment.status);
-    console.log("External Reference:", payment.external_reference);
+    console.log(
+      "External Reference:",
+      payment.external_reference
+    );
 
-    /*
-    |--------------------------------------------------------------------------
-    | 4. OBTENER ID DE NUESTRA ORDEN
-    |--------------------------------------------------------------------------
-    */
+    // ============================================================
+    // 4. OBTENER ID DE LA ORDEN
+    // ============================================================
 
     const orderId = payment.external_reference;
 
     if (!orderId) {
-      console.log("El pago no tiene external_reference");
+      console.log(
+        "El pago no tiene external_reference"
+      );
+
       return res.sendStatus(200);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 5. BUSCAR ORDEN
-    |--------------------------------------------------------------------------
-    */
+    // ============================================================
+    // 5. INICIAR TRANSACCIÓN
+    // ============================================================
+
+    transaction = await Order.sequelize.transaction();
+
+    // ============================================================
+    // 6. BUSCAR ORDEN CON LOCK
+    // ============================================================
+    //
+    // El lock evita que dos webhooks intenten procesar
+    // simultáneamente la misma orden.
+    // ============================================================
 
     const order = await Order.findByPk(orderId, {
       include: [
@@ -187,82 +418,215 @@ const webhook = async (req, res) => {
           as: "OrderItems",
         },
       ],
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
 
     if (!order) {
-      console.log("No se encontró la orden:", orderId);
+      console.log(
+        "No se encontró la orden:",
+        orderId
+      );
+
+      await transaction.rollback();
+      transaction = null;
+
       return res.sendStatus(200);
     }
 
     console.log(
-      `Orden encontrada #${order.id} - Estado actual: ${order.status}`,
+      `Orden encontrada #${order.id} - Estado actual: ${order.status}`
     );
 
-    /*
-    |--------------------------------------------------------------------------
-    | 6. EVITAR PROCESAR DOS VECES LA MISMA ORDEN
-    |--------------------------------------------------------------------------
-    |
-    | Mercado Pago puede enviar el mismo webhook varias veces.
-    |
-    | Si la orden ya está aprobada, no debemos:
-    | - descontar stock nuevamente
-    | - enviar nuevamente notificaciones
-    |
-    */
+    // ============================================================
+    // 7. EVITAR DUPLICADOS
+    // ============================================================
+    //
+    // Mercado Pago puede mandar el mismo webhook varias veces.
+    //
+    // Si ya fue aprobada:
+    // NO volvemos a descontar stock.
+    //
+    // Si ya fue rechazada/cancelada:
+    // NO volvemos a liberar reservedStock.
+    // ============================================================
 
-    if (order.status === "approved") {
-      console.log("La orden ya estaba aprobada. Evento ignorado.");
-      return res.sendStatus(200);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | 7. SI LA ORDEN ESTÁ EXPIRADA
-    |--------------------------------------------------------------------------
-    |
-    | No permitimos aprobar una orden que nuestro sistema ya marcó
-    | como abandonada/expirada.
-    |
-    */
-
-    if (order.status === "expired") {
+    if (
+      order.status === "approved" ||
+      order.status === "rejected" ||
+      order.status === "cancelled" ||
+      order.status === "expired"
+    ) {
       console.log(
-        `La orden #${order.id} está expirada. No se procesará el pago.`,
+        `Orden #${order.id} ya fue procesada con estado: ${order.status}`
       );
 
+      await transaction.rollback();
+      transaction = null;
+
       return res.sendStatus(200);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 8. PAGO APROBADO
-    |--------------------------------------------------------------------------
-    */
+    // ============================================================
+    // 8. VERIFICAR MONTO DEL PAGO
+    // ============================================================
+    //
+    // Nunca confiamos en el total enviado por frontend.
+    //
+    // La orden tiene su total y Mercado Pago tiene
+    // transaction_amount.
+    //
+    // Si no coinciden, no procesamos la venta.
+    // ============================================================
+
+    if (
+      payment.transaction_amount !== undefined &&
+      Number(payment.transaction_amount) !==
+        Number(order.total)
+    ) {
+      console.log("=================================");
+      console.log("ERROR: MONTO NO COINCIDE");
+      console.log("Orden:", order.total);
+      console.log(
+        "Mercado Pago:",
+        payment.transaction_amount
+      );
+      console.log("=================================");
+
+      await transaction.rollback();
+      transaction = null;
+
+      return res.sendStatus(200);
+    }
+
+    // ============================================================
+    // 9. PAGO APROBADO
+    // ============================================================
 
     if (payment.status === "approved") {
       console.log("=================================");
       console.log("PAGO APROBADO");
       console.log("=================================");
 
-      /*
-      |--------------------------------------------------------------------------
-      | Actualizar orden
-      |--------------------------------------------------------------------------
-      */
+      // ==========================================================
+      // 9.1 PROCESAR CADA PRODUCTO
+      // ==========================================================
+
+      for (const item of order.OrderItems) {
+        const product = await Product.findByPk(
+          item.productId,
+          {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          }
+        );
+
+        if (!product) {
+          throw new Error(
+            `Producto ${item.productId} no encontrado`
+          );
+        }
+
+        const quantity = Number(item.quantity);
+
+        const previousStock = Number(product.stock);
+        const previousReserved =
+          Number(product.reservedStock) || 0;
+
+        // ========================================================
+        // VALIDAR RESERVA
+        // ========================================================
+        //
+        // La cantidad comprada debería estar reservada.
+        //
+        // Si no existe suficiente reservedStock significa que
+        // hay un problema de integridad y NO debemos confirmar
+        // parcialmente la venta.
+        // ========================================================
+
+        if (previousReserved < quantity) {
+          throw new Error(
+            `Reserva insuficiente para "${product.title}". ` +
+              `Reservado: ${previousReserved}, ` +
+              `necesario: ${quantity}`
+          );
+        }
+
+        // ========================================================
+        // CONVERTIR RESERVA EN VENTA
+        // ========================================================
+        //
+        // Antes:
+        //
+        // stock = 10
+        // reservedStock = 3
+        //
+        // Después:
+        //
+        // stock = 7
+        // reservedStock = 0
+        // ========================================================
+
+        product.stock =
+          previousStock - quantity;
+
+        product.reservedStock =
+          previousReserved - quantity;
+
+        await product.save({
+          transaction,
+        });
+
+        console.log(
+          `Venta confirmada: ${product.title} | ` +
+            `stock ${previousStock} → ${product.stock} | ` +
+            `reservado ${previousReserved} → ${product.reservedStock}`
+        );
+      }
+
+      // ==========================================================
+      // 9.2 ACTUALIZAR ORDEN
+      // ==========================================================
 
       order.status = "approved";
       order.paymentId = String(payment.id);
 
-      await order.save();
+      await order.save({
+        transaction,
+      });
 
-      console.log("Orden actualizada correctamente.");
+      // ==========================================================
+      // 9.3 CONFIRMAR TRANSACCIÓN
+      // ==========================================================
 
-      /*
-      |--------------------------------------------------------------------------
-      | NOTIFICACIÓN AL ADMIN
-      |--------------------------------------------------------------------------
-      */
+      await transaction.commit();
+      transaction = null;
+
+      console.log(
+        `Orden #${order.id} aprobada correctamente.`
+      );
+
+      // ==========================================================
+      // 9.4 ACTUALIZAR FRONTEND EN TIEMPO REAL
+      // ==========================================================
+
+      for (const item of order.OrderItems) {
+        const product = await Product.findByPk(
+          item.productId
+        );
+
+        if (product && req.io) {
+          req.io.emit("stock_updated", {
+            productId: product.id,
+            stock: product.stock,
+            reservedStock: product.reservedStock,
+          });
+        }
+      }
+
+      // ==========================================================
+      // 9.5 NOTIFICACIÓN ADMIN
+      // ==========================================================
 
       try {
         await sendNotification({
@@ -273,17 +637,19 @@ const webhook = async (req, res) => {
           type: "sale",
         });
 
-        console.log("Notificación de venta enviada al admin.");
+        console.log(
+          "Notificación de venta enviada al admin."
+        );
       } catch (error) {
-        console.log("Error enviando notificación al admin:");
+        console.log(
+          "Error enviando notificación al admin:"
+        );
         console.log(error);
       }
 
-      /*
-      |--------------------------------------------------------------------------
-      | NOTIFICACIÓN AL USUARIO
-      |--------------------------------------------------------------------------
-      */
+      // ==========================================================
+      // 9.6 NOTIFICACIÓN USUARIO
+      // ==========================================================
 
       if (order.userId) {
         try {
@@ -295,107 +661,92 @@ const webhook = async (req, res) => {
             type: "success",
           });
 
-          console.log("Notificación de pago enviada al usuario.");
+          console.log(
+            "Notificación de pago enviada al usuario."
+          );
         } catch (error) {
-          console.log("Error enviando notificación al usuario:");
+          console.log(
+            "Error enviando notificación al usuario:"
+          );
           console.log(error);
         }
       }
 
-      /*
-      |--------------------------------------------------------------------------
-      | 9. DESCONTAR STOCK
-      |--------------------------------------------------------------------------
-      */
+      // ==========================================================
+      // 9.7 STOCK BAJO / AGOTADO
+      // ==========================================================
 
       for (const item of order.OrderItems) {
-        const product = await Product.findByPk(item.productId);
+        const product = await Product.findByPk(
+          item.productId
+        );
 
         if (!product) {
-          console.log(`Producto ${item.productId} no encontrado. Se continúa.`);
-
           continue;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Descontar stock
-        |--------------------------------------------------------------------------
-        */
+        // --------------------------------------------------------
+        // STOCK BAJO
+        // --------------------------------------------------------
 
-        const previousStock = product.stock;
-
-        product.stock = Math.max(0, product.stock - item.quantity);
-
-        await product.save();
-
-        req.io.emit("stock_updated", {
-          productId: product.id,
-          stock: product.stock,
-        });
-
-        console.log(
-          `Stock actualizado: ${product.title} | ${previousStock} → ${product.stock}`,
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | STOCK BAJO
-        |--------------------------------------------------------------------------
-        */
-
-        if (product.stock > 0 && product.stock <= 3) {
+        if (
+          product.stock > 0 &&
+          product.stock <= 3
+        ) {
           try {
             await sendNotification({
               io: req.io,
               roleTarget: "admin",
               title: "Stock bajo",
-              message: `${product.title} tiene solo ${product.stock} unidades disponibles.`,
+              message:
+                `${product.title} tiene solo ` +
+                `${product.stock} unidades disponibles.`,
               type: "warning",
             });
 
-            console.log(`Notificación de stock bajo enviada: ${product.title}`);
+            console.log(
+              `Notificación de stock bajo enviada: ${product.title}`
+            );
           } catch (error) {
-            console.log("Error enviando notificación de stock bajo:");
+            console.log(
+              "Error enviando notificación de stock bajo:"
+            );
             console.log(error);
           }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCTO AGOTADO
-        |--------------------------------------------------------------------------
-        */
+        // --------------------------------------------------------
+        // PRODUCTO AGOTADO
+        // --------------------------------------------------------
 
         if (product.stock === 0) {
           try {
-            /*
-            | Si el producto queda sin stock,
-            | lo pausamos automáticamente.
-            */
-
             product.isActive = false;
             product.status = "paused";
 
             await product.save();
 
             console.log(
-              `Producto pausado automáticamente por falta de stock: ${product.title}`,
+              `Producto pausado automáticamente por falta de stock: ${product.title}`
             );
 
             await sendNotification({
               io: req.io,
               roleTarget: "admin",
               title: "Producto agotado",
-              message: `${product.title} se quedó sin stock y fue pausado automáticamente.`,
+              message:
+                `${product.title} se quedó sin stock ` +
+                `y fue pausado automáticamente.`,
               type: "error",
             });
 
             console.log(
-              `Notificación de producto agotado enviada: ${product.title}`,
+              `Notificación de producto agotado enviada: ${product.title}`
             );
           } catch (error) {
-            console.log("Error procesando producto agotado:");
+            console.log(
+              "Error procesando producto agotado:"
+            );
             console.log(error);
           }
         }
@@ -404,24 +755,106 @@ const webhook = async (req, res) => {
       console.log("=================================");
       console.log("Webhook procesado correctamente.");
       console.log("=================================");
-    } else if (payment.status === "rejected") {
 
-    /*
-    |--------------------------------------------------------------------------
-    | 10. PAGO RECHAZADO
-    |--------------------------------------------------------------------------
-    */
-      console.log("Pago rechazado.");
+      return res.sendStatus(200);
+    }
+
+    // ============================================================
+    // 10. PAGO RECHAZADO
+    // ============================================================
+
+    if (payment.status === "rejected") {
+      console.log("=================================");
+      console.log("PAGO RECHAZADO");
+      console.log("=================================");
+
+      // ----------------------------------------------------------
+      // Liberar reserva
+      // ----------------------------------------------------------
+
+      for (const item of order.OrderItems) {
+        const product = await Product.findByPk(
+          item.productId,
+          {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          }
+        );
+
+        if (!product) {
+          throw new Error(
+            `Producto ${item.productId} no encontrado`
+          );
+        }
+
+        const quantity = Number(item.quantity);
+
+        const previousReserved =
+          Number(product.reservedStock) || 0;
+
+        if (previousReserved < quantity) {
+          throw new Error(
+            `Reserva insuficiente para liberar ` +
+              `"${product.title}".`
+          );
+        }
+
+        product.reservedStock =
+          previousReserved - quantity;
+
+        await product.save({
+          transaction,
+        });
+
+        console.log(
+          `Reserva liberada: ${product.title} | ` +
+            `${previousReserved} → ${product.reservedStock}`
+        );
+      }
+
+      // ----------------------------------------------------------
+      // Actualizar orden
+      // ----------------------------------------------------------
 
       order.status = "rejected";
+      order.paymentId = String(payment.id);
 
-      await order.save();
+      await order.save({
+        transaction,
+      });
 
-      /*
-      |--------------------------------------------------------------------------
-      | Notificación admin
-      |--------------------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // Confirmar transacción
+      // ----------------------------------------------------------
+
+      await transaction.commit();
+      transaction = null;
+
+      console.log(
+        `Orden #${order.id} marcada como rechazada.`
+      );
+
+      // ----------------------------------------------------------
+      // Actualizar frontend
+      // ----------------------------------------------------------
+
+      for (const item of order.OrderItems) {
+        const product = await Product.findByPk(
+          item.productId
+        );
+
+        if (product && req.io) {
+          req.io.emit("stock_updated", {
+            productId: product.id,
+            stock: product.stock,
+            reservedStock: product.reservedStock,
+          });
+        }
+      }
+
+      // ----------------------------------------------------------
+      // Notificación admin
+      // ----------------------------------------------------------
 
       try {
         await sendNotification({
@@ -432,17 +865,19 @@ const webhook = async (req, res) => {
           type: "error",
         });
 
-        console.log("Notificación de pago rechazado enviada al admin.");
+        console.log(
+          "Notificación de pago rechazado enviada al admin."
+        );
       } catch (error) {
-        console.log("Error enviando notificación de pago rechazado al admin:");
+        console.log(
+          "Error enviando notificación de pago rechazado al admin:"
+        );
         console.log(error);
       }
 
-      /*
-      |--------------------------------------------------------------------------
-      | Notificación usuario
-      |--------------------------------------------------------------------------
-      */
+      // ----------------------------------------------------------
+      // Notificación usuario
+      // ----------------------------------------------------------
 
       if (order.userId) {
         try {
@@ -450,49 +885,166 @@ const webhook = async (req, res) => {
             io: req.io,
             userId: order.userId,
             title: "Pago rechazado",
-            message: `Tu pago del pedido #${order.id} fue rechazado.`,
+            message:
+              `Tu pago del pedido #${order.id} fue rechazado.`,
             type: "error",
           });
 
-          console.log("Notificación de pago rechazado enviada al usuario.");
+          console.log(
+            "Notificación de pago rechazada enviada al usuario."
+          );
         } catch (error) {
           console.log(
-            "Error enviando notificación de pago rechazado al usuario:",
+            "Error enviando notificación al usuario:"
           );
           console.log(error);
         }
       }
-    } else {
 
-    /*
-    |--------------------------------------------------------------------------
-    | 11. OTROS ESTADOS
-    |--------------------------------------------------------------------------
-    |
-    | pending
-    | in_process
-    | cancelled
-    | etc.
-    |
-    | No modificamos nuestra orden todavía.
-    |
-    */
-      console.log(`Estado de pago no procesado: ${payment.status}`);
+      return res.sendStatus(200);
     }
+
+    // ============================================================
+    // 11. PAGO CANCELADO
+    // ============================================================
+    //
+    // Lo tratamos igual que un rechazo:
+    // liberar la reserva.
+    // ============================================================
+
+    if (payment.status === "cancelled") {
+      console.log("=================================");
+      console.log("PAGO CANCELADO");
+      console.log("=================================");
+
+      for (const item of order.OrderItems) {
+        const product = await Product.findByPk(
+          item.productId,
+          {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          }
+        );
+
+        if (!product) {
+          throw new Error(
+            `Producto ${item.productId} no encontrado`
+          );
+        }
+
+        const quantity = Number(item.quantity);
+
+        const previousReserved =
+          Number(product.reservedStock) || 0;
+
+        if (previousReserved < quantity) {
+          throw new Error(
+            `Reserva insuficiente para liberar ` +
+              `"${product.title}".`
+          );
+        }
+
+        product.reservedStock =
+          previousReserved - quantity;
+
+        await product.save({
+          transaction,
+        });
+
+        console.log(
+          `Reserva liberada: ${product.title} | ` +
+            `${previousReserved} → ${product.reservedStock}`
+        );
+      }
+
+      order.status = "cancelled";
+      order.paymentId = String(payment.id);
+
+      await order.save({
+        transaction,
+      });
+
+      await transaction.commit();
+      transaction = null;
+
+      console.log(
+        `Orden #${order.id} marcada como cancelada.`
+      );
+
+      // Actualizar frontend
+      for (const item of order.OrderItems) {
+        const product = await Product.findByPk(
+          item.productId
+        );
+
+        if (product && req.io) {
+          req.io.emit("stock_updated", {
+            productId: product.id,
+            stock: product.stock,
+            reservedStock: product.reservedStock,
+          });
+        }
+      }
+
+      return res.sendStatus(200);
+    }
+
+    // ============================================================
+    // 12. OTROS ESTADOS
+    // ============================================================
+    //
+    // pending
+    // in_process
+    // authorized
+    // etc.
+    //
+    // NO tocamos la reserva.
+    // La orden continúa pendiente.
+    // ============================================================
+
+    console.log(
+      `Estado de pago no procesado: ${payment.status}`
+    );
+
+    await transaction.rollback();
+    transaction = null;
 
     console.log("========== FIN WEBHOOK ==========");
 
     return res.sendStatus(200);
   } catch (error) {
-    console.log("========== ERROR EN WEBHOOK ==========");
+    console.log(
+      "========== ERROR EN WEBHOOK =========="
+    );
+
     console.log(error);
 
     if (error.response) {
-      console.log("Respuesta del servidor:");
+      console.log(
+        "Respuesta del servidor:"
+      );
+
       console.log(error.response);
     }
 
-    console.log("======================================");
+    // ============================================================
+    // ROLLBACK
+    // ============================================================
+
+    if (transaction) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error(
+          "Error haciendo rollback:",
+          rollbackError
+        );
+      }
+    }
+
+    console.log(
+      "======================================"
+    );
 
     return res.sendStatus(500);
   }
