@@ -12,11 +12,14 @@ import {
 import api from "../../api/api";
 import backgroundImage from "../../assets/backgroundImage.jpg";
 import styles from "./Cart.module.css";
+import Swal from "sweetalert2";
 
 const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [purchaseError, setPurchaseError] = useState("");
+  const [isBuying, setIsBuying] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
 
   const items = useSelector((state) => state.cart.items);
@@ -46,49 +49,43 @@ const Cart = () => {
   |--------------------------------------------------------------------------
   */
 
-useEffect(() => {
-  const refreshCartStock = async () => {
-    if (!items.length) return;
+  useEffect(() => {
+    const refreshCartStock = async () => {
+      if (!items.length) return;
 
-    try {
-      const updatedItems = await Promise.all(
-        items.map(async (item) => {
-          try {
-            const res = await api.get(`/products/${item.id}`);
+      try {
+        const updatedItems = await Promise.all(
+          items.map(async (item) => {
+            try {
+              const res = await api.get(`/products/${item.id}`);
 
-            return {
-              ...item,
-              stock: res.data.stock,
-              reservedStock: res.data.reservedStock,
-              availableStock:
-                res.data.availableStock ??
-                Math.max(
-                  0,
-                  res.data.stock - res.data.reservedStock,
-                ),
-            };
-          } catch (error) {
-            console.error(
-              `Error obteniendo stock del producto ${item.id}:`,
-              error,
-            );
+              return {
+                ...item,
+                stock: res.data.stock,
+                reservedStock: res.data.reservedStock,
+                availableStock:
+                  res.data.availableStock ??
+                  Math.max(0, res.data.stock - res.data.reservedStock),
+              };
+            } catch (error) {
+              console.error(
+                `Error obteniendo stock del producto ${item.id}:`,
+                error,
+              );
 
-            return item;
-          }
-        }),
-      );
+              return item;
+            }
+          }),
+        );
 
-      dispatch(updateCartStock(updatedItems));
-    } catch (error) {
-      console.error(
-        "Error actualizando stock del carrito:",
-        error,
-      );
-    }
-  };
+        dispatch(updateCartStock(updatedItems));
+      } catch (error) {
+        console.error("Error actualizando stock del carrito:", error);
+      }
+    };
 
-  refreshCartStock();
-}, [dispatch, items.length]);
+    refreshCartStock();
+  }, [dispatch, items.length]);
 
   /*
   |--------------------------------------------------------------------------
@@ -96,9 +93,7 @@ useEffect(() => {
   |--------------------------------------------------------------------------
   */
 
-  const purchasableItems = items.filter(
-    (item) => selectedItems[item.id],
-  );
+  const purchasableItems = items.filter((item) => selectedItems[item.id]);
 
   /*
   |--------------------------------------------------------------------------
@@ -118,9 +113,7 @@ useEffect(() => {
   */
 
   const hasUnavailableProducts = items.some(
-    (item) =>
-      selectedItems[item.id] &&
-      (item.availableStock ?? 0) <= 0,
+    (item) => selectedItems[item.id] && (item.availableStock ?? 0) <= 0,
   );
 
   /*
@@ -129,11 +122,9 @@ useEffect(() => {
   |--------------------------------------------------------------------------
   */
 
-const hasQuantityProblems = purchasableItems.some(
-  (item) =>
-    item.availableStock > 0 &&
-    item.quantity > item.availableStock
-);
+  const hasQuantityProblems = purchasableItems.some(
+    (item) => item.availableStock > 0 && item.quantity > item.availableStock,
+  );
 
   /*
   |--------------------------------------------------------------------------
@@ -153,45 +144,125 @@ const hasQuantityProblems = purchasableItems.some(
   */
 
   const handleBuy = async () => {
-    try {
-      const res = await api.post(
-        "/payment/create-preference",
-        {
-          items: purchasableItems,
-        },
-      );
+  setIsBuying(true);
 
-      const paymentWindow = window.open(
-        res.data.init_point,
-        "_blank",
-      );
+  try {
+    const res = await api.post("/payment/create-preference", {
+      items: purchasableItems,
+    });
 
-      if (!paymentWindow) {
-        alert(
-          "El navegador bloqueó la ventana de Mercado Pago. Permití las ventanas emergentes para continuar.",
-        );
-      }
-    } catch (error) {
-      console.log(error);
+    const paymentWindow = window.open(
+      res.data.init_point,
+      "_blank",
+    );
 
-      /*
-      | Si el backend rechaza la compra porque el stock cambió,
-      | actualizamos nuevamente el carrito.
-      */
-
-      if (error.response?.status === 400) {
-        alert(
-          error.response.data?.error ||
-            "El stock disponible cambió. Actualizando carrito...",
-        );
-
-        dispatch(getProducts());
-      } else {
-        alert("Error al iniciar pago");
-      }
+    if (!paymentWindow) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Ventana bloqueada",
+        text: "El navegador bloqueó la ventana de Mercado Pago. Permití las ventanas emergentes para continuar.",
+        confirmButtonText: "Entendido",
+      });
     }
-  };
+  } catch (error) {
+    console.error("Error iniciando pago:", error);
 
+    const message = error.response?.data?.error || "";
+
+    const stockError = message.match(
+      /No hay stock suficiente para "(.+)". Disponible: (\d+)/
+    );
+
+    if (stockError) {
+      const [, productTitle, availableStock] = stockError;
+
+      // Actualizar stock del carrito
+      try {
+        const updatedItems = await Promise.all(
+          items.map(async (item) => {
+            try {
+              const res = await api.get(
+                `/products/${item.id}`,
+              );
+
+              return {
+                ...item,
+                stock: res.data.stock,
+                reservedStock: res.data.reservedStock,
+                availableStock:
+                  res.data.availableStock ??
+                  Math.max(
+                    0,
+                    res.data.stock -
+                      res.data.reservedStock,
+                  ),
+              };
+            } catch {
+              return item;
+            }
+          }),
+        );
+
+        dispatch(updateCartStock(updatedItems));
+      } catch (refreshError) {
+        console.error(
+          "Error actualizando stock:",
+          refreshError,
+        );
+      }
+
+      if (Number(availableStock) === 0) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Producto sin stock",
+          html: `
+            <p>
+              El producto <strong>"${productTitle}"</strong>
+              se quedó sin stock. Se ve que alguien lo compro antes que vos.
+            </p>
+            <p>
+              Actualizamos la disponibilidad de tu carrito.
+            </p>
+          `,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        await Swal.fire({
+          icon: "warning",
+          title: "Stock actualizado",
+          html: `
+            <p>
+              La cantidad disponible de
+              <strong>"${productTitle}"</strong>
+              cambió.
+            </p>
+            <p>
+              Actualmente hay
+              <strong>${availableStock}</strong>
+              unidad${Number(availableStock) === 1 ? "" : "es"}
+              disponible${Number(availableStock) === 1 ? "" : "s"}.
+            </p>
+          `,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#3085d6",
+        });
+      }
+
+      return;
+    }
+
+    await Swal.fire({
+      icon: "error",
+      title: "No pudimos iniciar el pago",
+      text: "Ocurrió un problema al intentar iniciar el pago. Intentá nuevamente.",
+      confirmButtonText: "Entendido",
+      confirmButtonColor: "#d33",
+    });
+  } finally {
+    setIsBuying(false);
+  }
+};
   /*
   |--------------------------------------------------------------------------
   | CARRITO VACÍO
@@ -220,23 +291,12 @@ const hasQuantityProblems = purchasableItems.some(
           const availableStock = item.availableStock ?? 0;
 
           return (
-            <div
-              className={styles.card}
-              key={item.id}
-            >
+            <div className={styles.card} key={item.id}>
               {availableStock <= 0 && (
-                <div className={styles.outOfStock}>
-                  SIN STOCK
-                </div>
+                <div className={styles.outOfStock}>SIN STOCK</div>
               )}
 
-              <img
-                src={
-                  item.imageUrl?.[0] ||
-                  item.image
-                }
-                alt={item.title}
-              />
+              <img src={item.imageUrl?.[0] || item.image} alt={item.title} />
 
               <div className={styles.info}>
                 <h3>{item.title}</h3>
@@ -244,9 +304,7 @@ const hasQuantityProblems = purchasableItems.some(
                 <label className={styles.checkbox}>
                   <input
                     type="checkbox"
-                    checked={
-                      selectedItems[item.id] || false
-                    }
+                    checked={selectedItems[item.id] || false}
                     onChange={(e) =>
                       setSelectedItems((prev) => ({
                         ...prev,
@@ -254,7 +312,6 @@ const hasQuantityProblems = purchasableItems.some(
                       }))
                     }
                   />
-
                   Incluir en la compra
                 </label>
 
@@ -267,20 +324,15 @@ const hasQuantityProblems = purchasableItems.some(
                 </div>
 
                 {hasQuantityProblems && (
-                    <div className={styles.stockWarning}>
-                      La cantidad seleccionada supera el
-                      stock disponible.
-                    </div>
-                  )}
+                  <div className={styles.stockWarning}>
+                    La cantidad seleccionada supera el stock disponible.
+                  </div>
+                )}
 
                 <div className={styles.qty}>
                   <button
                     disabled={item.quantity <= 1}
-                    onClick={() =>
-                      dispatch(
-                        decreaseQty(item.id),
-                      )
-                    }
+                    onClick={() => dispatch(decreaseQty(item.id))}
                   >
                     -
                   </button>
@@ -289,43 +341,29 @@ const hasQuantityProblems = purchasableItems.some(
 
                   <button
                     disabled={
-                      availableStock <= 0 ||
-                      item.quantity >= availableStock
+                      availableStock <= 0 || item.quantity >= availableStock
                     }
-                    onClick={() =>
-                      dispatch(
-                        increaseQty(item.id),
-                      )
-                    }
+                    onClick={() => dispatch(increaseQty(item.id))}
                   >
                     +
                   </button>
                 </div>
 
                 <div className={styles.subtotal}>
-                  Subtotal: $
-                  {item.price * item.quantity}
+                  Subtotal: ${item.price * item.quantity}
                 </div>
 
                 <div className={styles.itemActions}>
                   <button
                     className={styles.detailBtn}
-                    onClick={() =>
-                      navigate(
-                        `/product-detail/${item.id}`,
-                      )
-                    }
+                    onClick={() => navigate(`/product-detail/${item.id}`)}
                   >
                     Ver detalle
                   </button>
 
                   <button
                     className={styles.remove}
-                    onClick={() =>
-                      dispatch(
-                        removeFromCart(item.id),
-                      )
-                    }
+                    onClick={() => dispatch(removeFromCart(item.id))}
                   >
                     Eliminar
                   </button>
@@ -336,10 +374,7 @@ const hasQuantityProblems = purchasableItems.some(
         })}
 
         <div className={styles.footer}>
-          <button
-            className={styles.backBtn}
-            onClick={() => navigate(-1)}
-          >
+          <button className={styles.backBtn} onClick={() => navigate(-1)}>
             ← Volver
           </button>
 
@@ -347,16 +382,14 @@ const hasQuantityProblems = purchasableItems.some(
 
           {hasUnavailableProducts && (
             <p className={styles.stockWarning}>
-              Hay productos sin stock disponible.
-              Eliminalos del carrito para poder
-              continuar con la compra.
+              Hay productos sin stock disponible. Eliminalos del carrito para
+              poder continuar con la compra.
             </p>
           )}
 
           {hasQuantityProblems && (
             <p className={styles.stockWarning}>
-              La cantidad de uno o más productos
-              supera el stock disponible.
+              La cantidad de uno o más productos supera el stock disponible.
             </p>
           )}
 
@@ -364,16 +397,14 @@ const hasQuantityProblems = purchasableItems.some(
             <button
               className={styles.buyBtn}
               onClick={handleBuy}
-              disabled={!canBuy}
+              disabled={!canBuy || isBuying}
             >
-              Finalizar Compra
+              {isBuying ? "Verificando stock..." : "Finalizar Compra"}
             </button>
 
             <button
               className={styles.clearBtn}
-              onClick={() =>
-                setShowClearModal(true)
-              }
+              onClick={() => setShowClearModal(true)}
             >
               Vaciar carrito
             </button>
@@ -383,27 +414,18 @@ const hasQuantityProblems = purchasableItems.some(
         {showClearModal && (
           <div className={styles.modalOverlay}>
             <div className={styles.modal}>
-              <div className={styles.neonIcon}>
-                🛒
-              </div>
+              <div className={styles.neonIcon}>🛒</div>
 
               <h2>Vaciar carrito</h2>
 
-              <p>
-                Todos los productos serán eliminados
-                del carrito.
-              </p>
+              <p>Todos los productos serán eliminados del carrito.</p>
 
-              <p className={styles.warning}>
-                ¿Deseas continuar?
-              </p>
+              <p className={styles.warning}>¿Deseas continuar?</p>
 
               <div className={styles.modalActions}>
                 <button
                   className={styles.confirmBtn}
-                  onClick={() =>
-                    setShowClearModal(false)
-                  }
+                  onClick={() => setShowClearModal(false)}
                 >
                   Continuar compra
                 </button>
