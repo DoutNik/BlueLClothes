@@ -37,6 +37,12 @@ const ProductDetail = () => {
 
   const handleAction = () => {
     if (isInCart) return;
+
+    if (availableStock <= 0) {
+      toast.error("Este producto no tiene stock disponible.");
+      return;
+    }
+
     dispatch(addToCart({ ...product, quantity: 1 }));
 
     toast.success(
@@ -55,12 +61,14 @@ const ProductDetail = () => {
     description,
     price,
     stock,
+    reservedStock = 0,
     brand,
     colors,
     category,
     imageUrl = [],
   } = product;
 
+  const availableStock = Math.max(0, stock - reservedStock);
 
   return (
     <div
@@ -106,18 +114,28 @@ const ProductDetail = () => {
           <div className={styles.price}>${price}</div>
 
           {/* 📦 STOCK */}
-          <p className={stock > 0 ? styles.inStock : styles.outStock}>
-            Stock disponible: {stock}
+          <p className={availableStock > 0 ? styles.inStock : styles.outStock}>
+            Stock disponible: {availableStock}
           </p>
 
           {/* 🛒 ACCIONES */}
           <div className={styles.actions}>
             <button
-              className={isInCart ? styles.inCartBtn : styles.buyBtn}
+              className={
+                isInCart
+                  ? styles.inCartBtn
+                  : availableStock > 0
+                    ? styles.buyBtn
+                    : styles.outStockBtn
+              }
               onClick={handleAction}
-              disabled={isInCart}
+              disabled={isInCart || availableStock <= 0}
             >
-              {isInCart ? "Producto en carrito" : "Agregar al carrito"}
+              {isInCart
+                ? "Producto en carrito"
+                : availableStock > 0
+                  ? "Agregar al carrito"
+                  : "Sin stock disponible"}
             </button>
 
             <div className={styles.secondaryActions}>

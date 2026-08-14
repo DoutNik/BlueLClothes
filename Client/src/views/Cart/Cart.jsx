@@ -25,66 +25,146 @@ const Cart = () => {
     dispatch(getProducts());
   }, [dispatch]);
 
+  /*
+  |--------------------------------------------------------------------------
+  | STOCK INICIAL DE LOS ITEMS
+  |--------------------------------------------------------------------------
+  */
+
   const [selectedItems, setSelectedItems] = useState(() =>
-    Object.fromEntries(items.map((item) => [item.id, item.stock > 0])),
+    Object.fromEntries(
+      items.map((item) => [
+        item.id,
+        (item.availableStock ?? item.stock ?? 0) > 0,
+      ]),
+    ),
   );
 
-  useEffect(() => {
-    const refreshCartStock = async () => {
-      if (!items.length) return;
+  /*
+  |--------------------------------------------------------------------------
+  | ACTUALIZAR STOCK DISPONIBLE DESDE BACKEND
+  |--------------------------------------------------------------------------
+  */
 
-      try {
-        const updatedItems = await Promise.all(
-          items.map(async (item) => {
-            try {
-              const res = await api.get(`/products/${item.id}`);
+useEffect(() => {
+  const refreshCartStock = async () => {
+    if (!items.length) return;
 
-              return {
-                ...item,
-                stock: res.data.stock,
-              };
-            } catch (error) {
-              console.error(
-                `Error obteniendo stock del producto ${item.id}:`,
-                error,
-              );
+    try {
+      const updatedItems = await Promise.all(
+        items.map(async (item) => {
+          try {
+            const res = await api.get(`/products/${item.id}`);
 
-              return item;
-            }
-          }),
-        );
+            return {
+              ...item,
+              stock: res.data.stock,
+              reservedStock: res.data.reservedStock,
+              availableStock:
+                res.data.availableStock ??
+                Math.max(
+                  0,
+                  res.data.stock - res.data.reservedStock,
+                ),
+            };
+          } catch (error) {
+            console.error(
+              `Error obteniendo stock del producto ${item.id}:`,
+              error,
+            );
 
-        console.log("Stock actualizado desde backend:", updatedItems);
+            return item;
+          }
+        }),
+      );
 
-        dispatch(updateCartStock(updatedItems));
-      } catch (error) {
-        console.error("Error actualizando stock del carrito:", error);
-      }
-    };
+      dispatch(updateCartStock(updatedItems));
+    } catch (error) {
+      console.error(
+        "Error actualizando stock del carrito:",
+        error,
+      );
+    }
+  };
 
-    refreshCartStock();
-  }, [dispatch, items.length]);
+  refreshCartStock();
+}, [dispatch, items.length]);
 
-  const purchasableItems = items.filter((item) => selectedItems[item.id]);
+  /*
+  |--------------------------------------------------------------------------
+  | PRODUCTOS SELECCIONADOS PARA COMPRAR
+  |--------------------------------------------------------------------------
+  */
+
+  const purchasableItems = items.filter(
+    (item) => selectedItems[item.id],
+  );
+
+  /*
+  |--------------------------------------------------------------------------
+  | TOTAL
+  |--------------------------------------------------------------------------
+  */
 
   const total = purchasableItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
 
+  /*
+  |--------------------------------------------------------------------------
+  | PRODUCTOS SIN STOCK DISPONIBLE
+  |--------------------------------------------------------------------------
+  */
+
   const hasUnavailableProducts = items.some(
-    (item) => item.stock <= 0 && selectedItems[item.id],
+    (item) =>
+      selectedItems[item.id] &&
+      (item.availableStock ?? 0) <= 0,
   );
 
-  const canBuy = purchasableItems.length > 0 && !hasUnavailableProducts;
+  /*
+  |--------------------------------------------------------------------------
+  | CANTIDAD MAYOR AL STOCK DISPONIBLE
+  |--------------------------------------------------------------------------
+  */
+
+const hasQuantityProblems = purchasableItems.some(
+  (item) =>
+    item.availableStock > 0 &&
+    item.quantity > item.availableStock
+);
+
+  /*
+  |--------------------------------------------------------------------------
+  | SE PUEDE COMPRAR
+  |--------------------------------------------------------------------------
+  */
+
+  const canBuy =
+    purchasableItems.length > 0 &&
+    !hasUnavailableProducts &&
+    !hasQuantityProblems;
+
+  /*
+  |--------------------------------------------------------------------------
+  | CREAR PREFERENCIA
+  |--------------------------------------------------------------------------
+  */
 
   const handleBuy = async () => {
     try {
-      const res = await api.post("/payment/create-preference", {
-        items: purchasableItems,
-      });
+      const res = await api.post(
+        "/payment/create-preference",
+        {
+          items: purchasableItems,
+        },
+      );
 
-      const paymentWindow = window.open(res.data.init_point, "_blank");
+      const paymentWindow = window.open(
+        res.data.init_point,
+        "_blank",
+      );
 
       if (!paymentWindow) {
         alert(
@@ -93,9 +173,30 @@ const Cart = () => {
       }
     } catch (error) {
       console.log(error);
-      alert("Error al iniciar pago");
+
+      /*
+      | Si el backend rechaza la compra porque el stock cambió,
+      | actualizamos nuevamente el carrito.
+      */
+
+      if (error.response?.status === 400) {
+        alert(
+          error.response.data?.error ||
+            "El stock disponible cambió. Actualizando carrito...",
+        );
+
+        dispatch(getProducts());
+      } else {
+        alert("Error al iniciar pago");
+      }
     }
   };
+
+  /*
+  |--------------------------------------------------------------------------
+  | CARRITO VACÍO
+  |--------------------------------------------------------------------------
+  */
 
   if (!items.length) {
     return (
@@ -115,86 +216,150 @@ const Cart = () => {
       <div className={styles.container}>
         <h1>Carrito</h1>
 
-        {items.map((item) => (
-          <div className={styles.card} key={item.id}>
-            {item.stock <= 0 && (
-              <div className={styles.outOfStock}>SIN STOCK</div>
-            )}
-            <img src={item.imageUrl?.[0] || item.image} alt={item.title} />
+        {items.map((item) => {
+          const availableStock = item.availableStock ?? 0;
 
-            <div className={styles.info}>
-              <h3>{item.title}</h3>
-              <label className={styles.checkbox}>
-                <input
-                  type="checkbox"
-                  checked={selectedItems[item.id] || false}
-                  onChange={(e) =>
-                    setSelectedItems((prev) => ({
-                      ...prev,
-                      [item.id]: e.target.checked,
-                    }))
-                  }
-                />
-                Incluir en la compra
-              </label>
-              <div className={styles.unitPrice}>
-                Precio unitario: ${item.price}
-              </div>
-              <div className={styles.stock}>Stock disponible: {item.stock}</div>
+          return (
+            <div
+              className={styles.card}
+              key={item.id}
+            >
+              {availableStock <= 0 && (
+                <div className={styles.outOfStock}>
+                  SIN STOCK
+                </div>
+              )}
 
-              <div className={styles.qty}>
-                <button
-                  disabled={item.stock <= 0}
-                  onClick={() => dispatch(decreaseQty(item.id))}
-                >
-                  -
-                </button>
+              <img
+                src={
+                  item.imageUrl?.[0] ||
+                  item.image
+                }
+                alt={item.title}
+              />
 
-                <span>{item.quantity}</span>
+              <div className={styles.info}>
+                <h3>{item.title}</h3>
 
-                <button
-                  disabled={item.stock <= 0 || item.quantity >= item.stock}
-                  onClick={() => dispatch(increaseQty(item.id))}
-                >
-                  +
-                </button>
-              </div>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedItems[item.id] || false
+                    }
+                    onChange={(e) =>
+                      setSelectedItems((prev) => ({
+                        ...prev,
+                        [item.id]: e.target.checked,
+                      }))
+                    }
+                  />
 
-              <div className={styles.subtotal}>
-                Subtotal: ${item.price * item.quantity}
-              </div>
+                  Incluir en la compra
+                </label>
 
-              <div className={styles.itemActions}>
-                <button
-                  className={styles.detailBtn}
-                  onClick={() => navigate(`/product-detail/${item.id}`)}
-                >
-                  Ver detalle
-                </button>
+                <div className={styles.unitPrice}>
+                  Precio unitario: ${item.price}
+                </div>
 
-                <button
-                  className={styles.remove}
-                  onClick={() => dispatch(removeFromCart(item.id))}
-                >
-                  Eliminar
-                </button>
+                <div className={styles.stock}>
+                  Stock disponible: {availableStock}
+                </div>
+
+                {hasQuantityProblems && (
+                    <div className={styles.stockWarning}>
+                      La cantidad seleccionada supera el
+                      stock disponible.
+                    </div>
+                  )}
+
+                <div className={styles.qty}>
+                  <button
+                    disabled={item.quantity <= 1}
+                    onClick={() =>
+                      dispatch(
+                        decreaseQty(item.id),
+                      )
+                    }
+                  >
+                    -
+                  </button>
+
+                  <span>{item.quantity}</span>
+
+                  <button
+                    disabled={
+                      availableStock <= 0 ||
+                      item.quantity >= availableStock
+                    }
+                    onClick={() =>
+                      dispatch(
+                        increaseQty(item.id),
+                      )
+                    }
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div className={styles.subtotal}>
+                  Subtotal: $
+                  {item.price * item.quantity}
+                </div>
+
+                <div className={styles.itemActions}>
+                  <button
+                    className={styles.detailBtn}
+                    onClick={() =>
+                      navigate(
+                        `/product-detail/${item.id}`,
+                      )
+                    }
+                  >
+                    Ver detalle
+                  </button>
+
+                  <button
+                    className={styles.remove}
+                    onClick={() =>
+                      dispatch(
+                        removeFromCart(item.id),
+                      )
+                    }
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         <div className={styles.footer}>
-          <button className={styles.backBtn} onClick={() => navigate(-1)}>
+          <button
+            className={styles.backBtn}
+            onClick={() => navigate(-1)}
+          >
             ← Volver
           </button>
 
           <h2>Total: ${total}</h2>
+
           {hasUnavailableProducts && (
             <p className={styles.stockWarning}>
-              Hay productos sin stock. Eliminalos del carrito para poder
+              Hay productos sin stock disponible.
+              Eliminalos del carrito para poder
               continuar con la compra.
             </p>
           )}
+
+          {hasQuantityProblems && (
+            <p className={styles.stockWarning}>
+              La cantidad de uno o más productos
+              supera el stock disponible.
+            </p>
+          )}
+
           <div className={styles.footerActions}>
             <button
               className={styles.buyBtn}
@@ -206,27 +371,39 @@ const Cart = () => {
 
             <button
               className={styles.clearBtn}
-              onClick={() => setShowClearModal(true)}
+              onClick={() =>
+                setShowClearModal(true)
+              }
             >
               Vaciar carrito
             </button>
           </div>
         </div>
+
         {showClearModal && (
           <div className={styles.modalOverlay}>
             <div className={styles.modal}>
-              <div className={styles.neonIcon}>🛒</div>
+              <div className={styles.neonIcon}>
+                🛒
+              </div>
 
               <h2>Vaciar carrito</h2>
 
-              <p>Todos los productos serán eliminados del carrito.</p>
+              <p>
+                Todos los productos serán eliminados
+                del carrito.
+              </p>
 
-              <p className={styles.warning}>¿Deseas continuar?</p>
+              <p className={styles.warning}>
+                ¿Deseas continuar?
+              </p>
 
               <div className={styles.modalActions}>
                 <button
                   className={styles.confirmBtn}
-                  onClick={() => setShowClearModal(false)}
+                  onClick={() =>
+                    setShowClearModal(false)
+                  }
                 >
                   Continuar compra
                 </button>

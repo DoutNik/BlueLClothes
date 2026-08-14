@@ -57,13 +57,18 @@ const ProductGrid = () => {
       // Color
       const matchColor =
         !filters.color ||
-        product.colores?.some((color) =>
+        product.colors?.some((color) =>
           color.toLowerCase().includes(filters.color.toLowerCase()),
         );
 
-      // Stock
-      const matchStock = !filters.inStockOnly || product.stock > 0;
-      
+      // Stock disponible
+      const availableStock = Math.max(
+        0,
+        product.stock - (product.reservedStock || 0),
+      );
+
+      const matchStock = !filters.inStockOnly || availableStock > 0;
+
       // Precio mínimo
       const matchMinPrice =
         !filters.minPrice || product.price >= filters.minPrice;
@@ -97,7 +102,10 @@ const ProductGrid = () => {
           return b.title.localeCompare(a.title);
 
         case "stock-desc":
-          return b.stock - a.stock;
+          return (
+            Math.max(0, b.stock - (b.reservedStock || 0)) -
+            Math.max(0, a.stock - (a.reservedStock || 0))
+          );
 
         default:
           return 0;
@@ -132,11 +140,14 @@ const ProductGrid = () => {
 
                   <p className={styles.extra}>Marca: {product.brand}</p>
 
-                  <p className={styles.extra}>Stock: {product.stock}</p>
+                  <p className={styles.extra}>
+                    Stock disponible:{" "}
+                    {Math.max(0, product.stock - (product.reservedStock || 0))}
+                  </p>
 
-                  {product.colores?.length > 0 && (
+                  {product.colors?.length > 0 && (
                     <p className={styles.extra}>
-                      Colores: {product.colores.join(", ")}
+                      Colores: {product.colors.join(", ")}
                     </p>
                   )}
                 </div>

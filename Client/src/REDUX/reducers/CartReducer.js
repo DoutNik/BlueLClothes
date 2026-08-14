@@ -20,29 +20,54 @@ const cartReducer = (state = initialState, action) => {
     case ADD_TO_CART: {
       const { product, quantity } = action.payload;
 
-      const existing = state.items.find((item) => item.id === product.id);
+      const existing = state.items.find(
+        (item) => item.id === product.id,
+      );
 
       if (existing) {
         updatedItems = state.items.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? {
+                ...item,
+                quantity: item.quantity + quantity,
+              }
             : item,
         );
       } else {
-        updatedItems = [...state.items, { ...product, quantity }];
+        updatedItems = [
+          ...state.items,
+          {
+            ...product,
+            quantity,
+          },
+        ];
       }
 
-      localStorage.setItem("cart", JSON.stringify(updatedItems));
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(updatedItems),
+      );
 
-      return { ...state, items: updatedItems };
+      return {
+        ...state,
+        items: updatedItems,
+      };
     }
 
     case REMOVE_FROM_CART:
-      updatedItems = state.items.filter((item) => item.id !== action.payload);
+      updatedItems = state.items.filter(
+        (item) => item.id !== action.payload,
+      );
 
-      localStorage.setItem("cart", JSON.stringify(updatedItems));
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(updatedItems),
+      );
 
-      return { ...state, items: updatedItems };
+      return {
+        ...state,
+        items: updatedItems,
+      };
 
     case INCREASE_QTY:
       updatedItems = state.items.map((item) =>
@@ -50,12 +75,17 @@ const cartReducer = (state = initialState, action) => {
           ? {
               ...item,
               quantity:
-                item.quantity < item.stock ? item.quantity + 1 : item.quantity,
+                item.quantity < (item.availableStock ?? 0)
+                  ? item.quantity + 1
+                  : item.quantity,
             }
           : item,
       );
 
-      localStorage.setItem("cart", JSON.stringify(updatedItems));
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(updatedItems),
+      );
 
       return {
         ...state,
@@ -67,43 +97,60 @@ const cartReducer = (state = initialState, action) => {
         item.id === action.payload
           ? {
               ...item,
-              quantity: item.quantity > 1 ? item.quantity - 1 : 1,
+              quantity:
+                item.quantity > 1
+                  ? item.quantity - 1
+                  : 1,
             }
           : item,
       );
 
-      localStorage.setItem("cart", JSON.stringify(updatedItems));
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(updatedItems),
+      );
 
       return {
         ...state,
         items: updatedItems,
       };
 
-case "UPDATE_CART_STOCK": {
-  updatedItems = state.items.map((item) => {
-    const updatedItem = action.payload.find(
-      (updated) => updated.id === item.id,
-    );
+    case UPDATE_CART_STOCK: {
+      updatedItems = state.items.map((item) => {
+        const updatedItem = action.payload.find(
+          (updated) => updated.id === item.id,
+        );
 
-    return updatedItem
-      ? {
+        if (!updatedItem) {
+          return item;
+        }
+
+        return {
           ...item,
           stock: updatedItem.stock,
-        }
-      : item;
-  });
+          reservedStock: updatedItem.reservedStock,
+          availableStock: updatedItem.availableStock,
+        };
+      });
 
-  localStorage.setItem("cart", JSON.stringify(updatedItems));
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(updatedItems),
+      );
 
-  return {
-    ...state,
-    items: updatedItems,
-  };
-}
+      return {
+        ...state,
+        items: updatedItems,
+      };
+    }
 
     case CLEAR_CART:
       localStorage.removeItem("cart");
-      return { ...state, items: [] };
+
+      return {
+        ...state,
+        items: [],
+      };
 
     default:
       return state;

@@ -122,9 +122,20 @@ const getPublicProducts = async (req, res) => {
       order: [["createdAt", "DESC"]],
     });
 
-    res.status(200).json(products);
+    const productsWithAvailableStock = products.map((product) => {
+      const productData = product.toJSON();
+
+      return {
+        ...productData,
+        availableStock: Math.max(0, product.stock - product.reservedStock),
+      };
+    });
+
+    res.status(200).json(productsWithAvailableStock);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message,
+    });
   }
 };
 
@@ -156,11 +167,24 @@ const getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
 
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    if (!product) {
+      return res.status(404).json({
+        error: "Product not found",
+      });
+    }
 
-    res.json(product);
+    const productData = product.toJSON();
+
+    productData.availableStock = Math.max(
+      0,
+      product.stock - product.reservedStock
+    );
+
+    res.json(productData);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message,
+    });
   }
 };
 
@@ -239,33 +263,40 @@ const activateProduct = async (req, res) => {
       });
     }
 
-    if (product.stock <= 0) {
+    const availableStock = Math.max(
+      0,
+      product.stock - product.reservedStock
+    );
+
+    if (availableStock <= 0) {
       return res.status(400).json({
-        error: "No se puede activar un producto sin stock.",
+        error: "No se puede activar un producto sin stock disponible.",
       });
     }
 
     product.isActive = true;
-    product.status = "published"; // Cambiar el estado a publicado al activar
+    product.status = "published";
+
     await product.save();
 
-    if (product.status === "published") {
-      await sendNotification({
-        io: req.io,
-        roleTarget: "all",
-        title: "Producto disponible nuevamente",
-        message: `${product.title} volvió a estar disponible.`,
-        type: "info",
-        category: "products",
-        entityType: "product",
-        entityId: product.id,
-        link: `/product-detail/${product.id}`,
-      });
-    }
+    await sendNotification({
+      io: req.io,
+      roleTarget: "all",
+      title: "Producto disponible nuevamente",
+      message: `${product.title} volvió a estar disponible.`,
+      type: "info",
+      category: "products",
+      entityType: "product",
+      entityId: product.id,
+      link: `/product-detail/${product.id}`,
+    });
 
     res.json({
       message: "Producto activado correctamente",
-      product,
+      product: {
+        ...product.toJSON(),
+        availableStock,
+      },
     });
   } catch (error) {
     console.error(error);
